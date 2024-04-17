@@ -13,5 +13,5 @@ def load_credentials():
         return json.load(file)
     
 credentials = load_credentials()
-OPENAI_API_KEY = credentials.get("openai_api_key")
-GOOGLE_API_KEY = credentials.get("google_api_key")
+OPENAI_API_KEY = credentials.get("openai-api-key")
+GOOGLE_API_KEY = credentials.get("google-api-key")

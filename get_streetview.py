@@ -20,22 +20,26 @@ def get_street_view_details(lat, lon):
     metadata_response = requests.get(metadata_url, params=params)
     if metadata_response.status_code == 200:
         metadata = metadata_response.json()
-        capture_date = metadata.get("date", "Unknown date")
         # Construct image URL
         image_url = requests.Request("GET", image_url_base, params=params).prepare().url
-        return capture_date, image_url
+        return metadata, image_url
     else:
         return "Failed to retrieve metadata", None
 
-def download_street_view_image(image_url):
+def download_street_view_image(metadata, image_url):
     """Downloads the Street View image from the given URL."""
-    # Get local filename from image_url
-    filename = image_url.split("/")[-1]
+    # Get filename from timestamp and lat/lon
+    date = metadata["date"]
+    lat = metadata["location"]["lat"]
+    lon = metadata["location"]["lng"]
+    filename = f"streetview_{date}_{lat}_{lon}.jpg"
     # Check if file already has been downloaded
     if pathlib.Path(filename).exists():
         print(f"Image already downloaded. Skipping download.")
         return filename
-
+    # Add API key as query parameter to image_url
+    image_url += f"&key={creds.GOOGLE_API_KEY}"
+    # Get local filename from image_url
     print(f"Retrieving Street View image from URL: {image_url}")
     response = requests.get(image_url)
     if response.status_code == 200:
@@ -100,11 +104,9 @@ def analyze_image_with_openai_api(image_path):
 if __name__ == "__main__":
     # Not snowy.
     (lat, lon) = (47.5763831, -122.4211769)
-    # Snowy
-    (lat, lon) = (61.2181, -149.9003)
-    date, image_url = get_street_view_details(lat, lon)
+    metadata, image_url = get_street_view_details(lat, lon)
     if image_url:
-        print(f"Image capture date: {date}")
+        print(f"Image capture date: {metadata['date']}")
         print(f"Image URL: {image_url}")
         # Download image
         local_url = download_street_view_image(image_url)
