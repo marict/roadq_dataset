@@ -12,6 +12,9 @@ credentials.json
 # MacOS Specific
 .DS_Store
 
+# Images dir
+images/
+
 # Distribution / packaging
 .Python
 build/
