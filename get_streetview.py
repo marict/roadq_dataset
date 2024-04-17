@@ -79,7 +79,10 @@ def analyze_image_with_openai_api(image_path):
                 "content": [
                     {
                         "type": "text",
-                        "text": "Whats in this image? Check for snow, rain, fog or cloud cover. The last characters of your response should be the weather conditions in the form of {'snow': [milimeter_guess], 'rain': [milimeter_guess], 'fog': [percent_visiblity_guess], 'cloud_cover':[percent_cover_guess]}.",
+                        "text": "Rate the road quality on a scale from 0 to 100. Please enter a number." +
+                            "If the image does not contain a road, please enter 'NO_ROAD" +
+                            "or if the image is indoor, please enter 'INDOOR'."
+                            "or if the image is unclear, please enter 'UNCLEAR'."
                     }
                 ],
             },
