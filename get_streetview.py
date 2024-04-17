@@ -63,8 +63,8 @@ def encode_image(image_path):
 
 
 def analyze_image_with_openai_api(image_path):
-    """Analyzes the image for weather conditions using OpenAI's Vision API."""
-    print(f"Analyzing image for weather conditions: {image_path}")
+    """Analyzes the image for road conditions using OpenAI's Vision API."""
+    print(f"Analyzing image for road conditions: {image_path}")
     base64_image = encode_image(image_path)
 
     headers = {
