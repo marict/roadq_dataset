@@ -6,6 +6,11 @@ import show_img
 
 import creds
 
+# Get location of this file 
+THIS_DIR = pathlib.Path(__file__).parent
+IMAGES_DIR = THIS_DIR / "images"
+IMAGES_DIR.mkdir(exist_ok=True)
+
 def get_street_view_details(lat, lon):
     """Fetches the capture date and image URL for the closest Street View image to the given coordinates."""
     metadata_url = "https://maps.googleapis.com/maps/api/streetview/metadata"
@@ -32,7 +37,7 @@ def download_street_view_image(metadata, image_url):
     date = metadata["date"]
     lat = metadata["location"]["lat"]
     lon = metadata["location"]["lng"]
-    filename = f"images/streetview_{date}_{lat}_{lon}.jpg"
+    filename = IMAGES_DIR / f"streetview_{date}_{lat}_{lon}.jpg"
     # Check if file already has been downloaded
     if pathlib.Path(filename).exists():
         print(f"Image already downloaded. Skipping download.")
