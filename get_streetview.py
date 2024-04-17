@@ -32,7 +32,7 @@ def download_street_view_image(metadata, image_url):
     date = metadata["date"]
     lat = metadata["location"]["lat"]
     lon = metadata["location"]["lng"]
-    filename = f"streetview_{date}_{lat}_{lon}.jpg"
+    filename = f"images/streetview_{date}_{lat}_{lon}.jpg"
     # Check if file already has been downloaded
     if pathlib.Path(filename).exists():
         print(f"Image already downloaded. Skipping download.")
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         print(f"Image capture date: {metadata['date']}")
         print(f"Image URL: {image_url}")
         # Download image
-        local_url = download_street_view_image(image_url)
+        local_url = download_street_view_image(metadata, image_url)
         if local_url:
             print("Image downloaded successfully.")
             show_img.show_image(local_url)
