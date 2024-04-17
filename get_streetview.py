@@ -3,6 +3,7 @@ import pathlib
 
 import requests
 import show_img
+import argparse
 
 import creds
 
@@ -10,6 +11,18 @@ import creds
 THIS_DIR = pathlib.Path(__file__).parent
 IMAGES_DIR = THIS_DIR / "images"
 IMAGES_DIR.mkdir(exist_ok=True)
+
+# Add arguments for latitude and longitude
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "lat", type=float, help="Latitude of the location to fetch Street View image."
+    )
+    parser.add_argument(
+        "lon", type=float, help="Longitude of the location to fetch Street View image."
+    )
+    args = parser.parse_args()
+    return args
 
 def get_street_view_details(lat, lon):
     """Fetches the capture date and image URL for the closest Street View image to the given coordinates."""
@@ -81,11 +94,9 @@ def analyze_image_with_openai_api(image_path):
                 "content": [
                     {
                         "type": "text",
-                        "text": "Rate the road quality on a scale from 0 to 100. Please enter a number." +
-                            "If the image does not contain a road, please enter 'NO_ROAD" +
-                            "or if the image is indoor, please enter 'INDOOR'."
+                        "text": "Rate the road quality on a scale from 0 to 100. Your response should be in the form {ROAD_QUALITY: N}, where N is a number between 0 and 100. If the image does not contain a road, please enter 'NO_ROAD'. If the image is indoors, please enter 'INDOOR'."
                     }
-                ],
+                ]
             },
             {
                 "role": "user",
@@ -112,8 +123,17 @@ def analyze_image_with_openai_api(image_path):
 
 if __name__ == "__main__":
     # Not snowy.
-    (lat, lon) = (40.7580, -73.9855)
+    args = parse_args()
+    lat = args.lat
+    lon = args.lon
+    # validate lat and lon
+    if lat < -90 or lat > 90:
+        print("Latitude must be between -90 and 90.")
+        exit()
     metadata, image_url = get_street_view_details(lat, lon)
+    if (metadata["status"] == "ZERO_RESULTS" or metadata["status"] == "NOT_FOUND"):
+        print("No Street View image found for the given location.")
+        exit()
     if image_url:
         print(f"Image capture date: {metadata['date']}")
         print(f"Image URL: {image_url}")
