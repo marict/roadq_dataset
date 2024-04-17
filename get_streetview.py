@@ -19,6 +19,8 @@ def get_street_view_details(lat, lon):
         "location": f"{lat},{lon}",
         "key": creds.GOOGLE_API_KEY,
         "size": "600x300",  # Example size, can be adjusted
+        "fov": "120",  # Example field of view, can be adjusted
+        "heading": 270,  # Example heading, can be adjusted
     }
     print(f"Retrieving Street View image metadata for location: {lat},{lon}")
     # Fetch metadata
@@ -82,7 +84,6 @@ def analyze_image_with_openai_api(image_path):
                         "text": "Rate the road quality on a scale from 0 to 100. Please enter a number." +
                             "If the image does not contain a road, please enter 'NO_ROAD" +
                             "or if the image is indoor, please enter 'INDOOR'."
-                            "or if the image is unclear, please enter 'UNCLEAR'."
                     }
                 ],
             },
@@ -111,7 +112,7 @@ def analyze_image_with_openai_api(image_path):
 
 if __name__ == "__main__":
     # Not snowy.
-    (lat, lon) = (47.5763831, -122.4211769)
+    (lat, lon) = (40.7580, -73.9855)
     metadata, image_url = get_street_view_details(lat, lon)
     if image_url:
         print(f"Image capture date: {metadata['date']}")
