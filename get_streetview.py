@@ -7,7 +7,6 @@ import argparse
 
 import creds
 
-# TEST TEST TEST 
 
 # Get location of this file 
 THIS_DIR = pathlib.Path(__file__).parent
