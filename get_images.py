@@ -52,6 +52,7 @@ def get_street_view_details(
         "size": size,
         "fov": fov,
         "heading": heading,
+        "radius": "1000"
     }
     print(f"Retrieving Street View image metadata for location: {lat},{lon}")
     # Fetch metadata
