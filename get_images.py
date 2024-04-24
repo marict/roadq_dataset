@@ -30,7 +30,7 @@ def parse_args():
         "--show-image", action="store_true", help="Display the downloaded image."
     )
     parser.add_argument(
-        '--heading', type=int, default=0, help='Heading of the Street View camera.'
+        '--num-images', type=int, default=1, help='Number of images to extract, the heading will be divided into equal parts starting at 0 and ending at 360'
     )
     args = parser.parse_args()
     return args
@@ -70,7 +70,6 @@ def get_street_view_image(image_url: str):
     print(f"Response: {response.text}")
     return None
 
-
 def get_image(lat: float, lon: float, heading: int = 0, fov: int = 120, size: str = "600x300"):
     # Retrieves metadata then retrieves the image from streetview api
     if lat < -90 or lat > 90:
@@ -95,27 +94,39 @@ def get_image(lat: float, lon: float, heading: int = 0, fov: int = 120, size: st
     else:
         return None, None
         
-if __name__ == "__main__":
-    args = parse_args()
-    lat = args.lat
-    lon = args.lon
-    show_image = args.show_image
-    heading = args.heading
-    output_dir = pathlib.Path(args.output_dir)
-    image, metadata = get_image(lat, lon, heading=heading)
-    # Save image to output dirs
-    if image:
-        # Get remove dots from lat and lon
+def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = False):
+    if num_images < 1:
+        raise ValueError("Number of images must be greater than 0.")
+    if num_images > 5:
+        raise ValueError("Number of images must be less than or equal to 5.")
+    headings = [0]
+    if num_images > 1:
+        headings = [heading for heading in range(0, 360, 360 // num_images)]
+    print(f"Generating images for headings: {headings}")
+    for heading in headings:
+        output_dir = pathlib.Path(IMAGES_DIR)
+        image, metadata = get_image(lat, lon, heading=heading)
+        if image is None:
+            raise ValueError("Failed to download image.")
+        
+        # Remove dots from lat and lon
         lat_str = str(lat).replace(".", "dot")
         lon_str = str(lon).replace(".", "dot")
         output_file = output_dir / f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"
         with open(output_file, "wb") as file:
             file.write(image)
         print(f"Image saved to {output_file}")
-    else:
-        print("Failed to download image.")
-        exit()
-    if args.show_image:
-        show_img.show_image(output_file)  
+
+        if show_image:
+            show_img.show_image(output_file)
+
+if __name__ == "__main__":
+    args = parse_args()
+    lat = args.lat
+    lon = args.lon
+    show_image = args.show_image
+    num_images = args.num_images
+    print(f"Fetching {num_images} image(s) for location: {lat}, {lon}")
+    get_images(lat, lon, num_images, show_image)
 
    
