@@ -106,18 +106,17 @@ def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = F
     for heading in headings:
         output_dir = pathlib.Path(IMAGES_DIR)
         image, metadata = get_image(lat, lon, heading=heading)
-        # Save image to output dirs
-        if image:
-            # Get remove dots from lat and lon
-            lat_str = str(lat).replace(".", "dot")
-            lon_str = str(lon).replace(".", "dot")
-            output_file = output_dir / f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"
-            with open(output_file, "wb") as file:
-                file.write(image)
-            print(f"Image saved to {output_file}")
-        else:
-            print("Failed to download image.")
-            exit()
+        if image is None:
+            raise ValueError("Failed to download image.")
+        
+        # Get remove dots from lat and lon
+        lat_str = str(lat).replace(".", "dot")
+        lon_str = str(lon).replace(".", "dot")
+        output_file = output_dir / f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"
+        with open(output_file, "wb") as file:
+            file.write(image)
+        print(f"Image saved to {output_file}")
+
         if show_image:
             show_img.show_image(output_file)
 
