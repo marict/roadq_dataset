@@ -12,8 +12,13 @@ credentials.json
 # MacOS Specific
 .DS_Store
 
-# Images dir
+# Images 
 images/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
 
 # Distribution / packaging
 .Python
