@@ -49,7 +49,6 @@ def get_street_view_details(lat: float, lon: float, heading: int = 0, fov: int =
     print(f"Retrieving Street View image metadata for location: {lat},{lon}")
     # Fetch metadata
     metadata_response = requests.get(metadata_url, params=params)
-    import pdb; pdb.set_trace()
     if metadata_response.status_code == 200:
         metadata = metadata_response.json()
         # Construct image URL
@@ -84,7 +83,6 @@ def get_image(lat: float, lon: float, heading: int = 0, fov: int = 120, size: st
     if size not in ["600x300", "400x400", "800x400"]:
         raise ValueError("Size must be one of '600x300', '400x400', or '800x400'.")
     image_url, metadata = get_street_view_details(lat, lon, heading, fov, size)
-    import pdb; pdb.set_trace()
     if (metadata["status"] == "ZERO_RESULTS" or metadata["status"] == "NOT_FOUND"):
         print(f"No Street View image found for the given location: {lat}, {lon}")
     elif image_url is not None:
