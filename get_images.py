@@ -109,7 +109,7 @@ def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = F
         if image is None:
             raise ValueError("Failed to download image.")
         
-        # Get remove dots from lat and lon
+        # Remove dots from lat and lon
         lat_str = str(lat).replace(".", "dot")
         lon_str = str(lon).replace(".", "dot")
         output_file = output_dir / f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"
