@@ -1,9 +1,7 @@
+import argparse
 import base64
-import pathlib
 
 import requests
-import show_img
-import argparse
 
 import creds
 
@@ -11,11 +9,10 @@ import creds
 # Add arguments for latitude and longitude
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "image_path", type=str, help="Path to the image to analyze."
-    )
+    parser.add_argument("image_path", type=str, help="Path to the image to analyze.")
     args = parser.parse_args()
     return args
+
 
 def encode_image(image_path: str):
     """Encodes the image at image_path to a base64 string."""
@@ -23,7 +20,7 @@ def encode_image(image_path: str):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-def analyze_with_openai(image_path:str):
+def analyze_with_openai(image_path: str):
     """Analyzes the image for road conditions using OpenAI's Vision API."""
     print(f"Analyzing image for road conditions: {image_path}")
     base64_image = encode_image(image_path)
@@ -40,9 +37,9 @@ def analyze_with_openai(image_path:str):
                 "content": [
                     {
                         "type": "text",
-                        "text": "Rate the road quality on a scale from 0 to 100. Your response should be in the form {ROAD_QUALITY: N}, where N is a number between 0 and 100. If the image does not contain a road, please enter 'NO_ROAD'. If the image is indoors, please enter 'INDOOR'."
+                        "text": "Rate the road quality on a scale from 0 to 100. Your response should be in the form {ROAD_QUALITY: N}, where N is a number between 0 and 100. If the image does not contain a road, please enter 'NO_ROAD'. If the image is indoors, please enter 'INDOOR'.",
                     }
-                ]
+                ],
             },
             {
                 "role": "user",
