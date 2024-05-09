@@ -1,18 +1,16 @@
 """Contains code for showing images in the terminal."""
-import subprocess
-import pathlib
+import argparse
 import os
 import pathlib
-import argparse
-import pathlib
+import subprocess
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "image_path", type=pathlib.Path, help="Path to the image file."
-    )
+    parser.add_argument("image_path", type=pathlib.Path, help="Path to the image file.")
     args = parser.parse_args()
     return args
+
 
 def can_use_imgcat():
     """Check if imgcat is available."""
@@ -21,9 +19,10 @@ def can_use_imgcat():
         print("imgcat.sh is not available.")
         return False
     # Check if we are using iterm2
-    if 'TERM_SESSION_ID' not in os.environ:
+    if "TERM_SESSION_ID" not in os.environ:
         return False
     return True
+
 
 def show_image(image_path: pathlib.Path):
     """Show an image in the terminal."""

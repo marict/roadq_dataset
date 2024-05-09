@@ -20,6 +20,10 @@ images/
 *.gif
 *.svg
 
+#Maps
+maps/
+*.html
+
 # Distribution / packaging
 .Python
 build/
