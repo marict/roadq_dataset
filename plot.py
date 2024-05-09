@@ -1,20 +1,29 @@
+import argparse
 import pathlib
 import webbrowser
 from typing import List, Tuple
 
 import folium
-import argparse
 
 # Get location of this file
 THIS_DIR = pathlib.Path(__file__).parent
 IMAGES_DIR = THIS_DIR / "maps"
 IMAGES_DIR.mkdir(exist_ok=True)
 
+
 def parse_args() -> argparse.ArgumentParser:
     """Parse command line arguments for rectangle coordinates."""
-    parser = argparse.ArgumentParser(description="Plot coordinates and rectangles on a map.")
-    parser.add_argument('--rectangles', type=str, nargs='+', help="Pairs of tuples for rectangles specified as 'lat1,lon1,lat2,lon2'")
+    parser = argparse.ArgumentParser(
+        description="Plot coordinates and rectangles on a map."
+    )
+    parser.add_argument(
+        "--rectangles",
+        type=str,
+        nargs="+",
+        help="Pairs of tuples for rectangles specified as 'lat1,lon1,lat2,lon2'",
+    )
     return parser.parse_args()
+
 
 def plot_coordinates_on_map(
     coordinates: List[Tuple[float, float]] = None,
@@ -64,17 +73,19 @@ def plot_coordinates_on_map(
     map_obj.save(output_file)
     webbrowser.open(f"file://{output_file}")
 
+
 def main() -> None:
     args = parse_args()
-    
+
     # Process the rectangle arguments into a list of tuples
     rectangles = []
     if args.rectangles:
         for rect in args.rectangles:
-            lat1, lon1, lat2, lon2 = map(float, rect.split(','))
+            lat1, lon1, lat2, lon2 = map(float, rect.split(","))
             rectangles.append(((lat1, lon1), (lat2, lon2)))
-    
+
     plot_coordinates_on_map(rectangles=rectangles)
+
 
 if __name__ == "__main__":
     main()
