@@ -1,11 +1,11 @@
 import argparse
+import ast
 import base64
+import json
 
 import requests
 
 import creds
-import ast
-import json
 
 
 # Add arguments for latitude and longitude
@@ -21,6 +21,7 @@ def encode_image(image_path: str):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
+
 def extract_vision_model_value(response: str, key: str) -> int:
     """
     Extracts a numerical value from a string output by a vision language model.
@@ -34,16 +35,18 @@ def extract_vision_model_value(response: str, key: str) -> int:
     # Access and return the value for the specified key
     return data[key]
 
+
 def get_predictions(image_paths: list[str]):
     """Labels the images at the given paths using OpenAI's Vision API."""
     pcis = []
     for image_path in image_paths:
         response = analyze_with_openai(image_path)
-        pci = extract_vision_model_value(response, key = "ROAD_QUALITY")
+        pci = extract_vision_model_value(response, key="ROAD_QUALITY")
         pcis.append(pci)
     return pcis
 
-def analyze_with_openai(image_path: str, verbose = False):
+
+def analyze_with_openai(image_path: str, verbose=False):
     """Analyzes the image for road conditions using OpenAI's Vision API."""
     if verbose:
         print(f"Analyzing image for road conditions: {image_path}")
@@ -61,9 +64,9 @@ def analyze_with_openai(image_path: str, verbose = False):
                 "content": [
                     {
                         "type": "text",
-                        "text": "Rate the road quality on a scale from 0 to 100. Your response should be in the form {\"ROAD_QUALITY\": N}, where N is a number between 0 and 100. If the image does not contain a road, please enter {\"ROAD_QUALITY\": \"NO_ROAD\"}. If the image is indoors, please enter {\"ROAD_QUALITY\": \"INDOOR\"}."
+                        "text": 'Rate the road quality on a scale from 0 to 100. Your response should be in the form {"ROAD_QUALITY": N}, where N is a number between 0 and 100. If the image does not contain a road, please enter {"ROAD_QUALITY": "NO_ROAD"}. If the image is indoors, please enter {"ROAD_QUALITY": "INDOOR"}.',
                     }
-                ]
+                ],
             },
             {
                 "role": "user",

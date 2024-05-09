@@ -2,6 +2,7 @@ import argparse
 from typing import List, Tuple
 
 import numpy as np
+
 import plot
 
 MAX_POINTS = 10000
@@ -43,6 +44,7 @@ def generate_grid(
 
     # Create grid using list comprehension
     return [(lat, lon) for lat in lat_points for lon in lon_points]
+
 
 def get_point_grid(
     lat_start: float,

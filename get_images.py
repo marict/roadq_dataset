@@ -41,7 +41,12 @@ def parse_args():
 
 
 def get_street_view_details(
-    lat: float, lon: float, heading: int = 0, fov: int = 120, size: str = "600x300", verbose = False
+    lat: float,
+    lon: float,
+    heading: int = 0,
+    fov: int = 120,
+    size: str = "600x300",
+    verbose=False,
 ):
     """Fetches the capture date and image URL for the closest Street View image to the given coordinates."""
     metadata_url = "https://maps.googleapis.com/maps/api/streetview/metadata"
@@ -52,7 +57,7 @@ def get_street_view_details(
         "size": size,
         "fov": fov,
         "heading": heading,
-        "radius": "1000"
+        "radius": "1000",
     }
     if verbose:
         print(f"Retrieving Street View image metadata for location: {lat},{lon}")
@@ -67,7 +72,7 @@ def get_street_view_details(
         return "Failed to retrieve metadata", None
 
 
-def get_street_view_image(image_url: str, verbose = False):
+def get_street_view_image(image_url: str, verbose=False):
     """Downloads the Street View image from the given URL."""
     # Add API key as query parameter to image_url
     image_url += f"&key={creds.GOOGLE_API_KEY}"
@@ -77,7 +82,9 @@ def get_street_view_image(image_url: str, verbose = False):
     response = requests.get(image_url)
     if response.status_code == 200:
         return response.content
-    print(f"Failed to download image from URL: {image_url}, status code: {response.status_code}, response: {response.text}")
+    print(
+        f"Failed to download image from URL: {image_url}, status code: {response.status_code}, response: {response.text}"
+    )
     return None
 
 
@@ -108,7 +115,9 @@ def get_image(
         return None, None
 
 
-def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = False) -> list[pathlib.Path]:
+def get_images(
+    lat: float, lon: float, num_images: int = 1, show_image: bool = False
+) -> list[pathlib.Path]:
     image_paths = []
     if num_images < 1:
         raise ValueError("Number of images must be greater than 0.")
