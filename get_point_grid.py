@@ -2,9 +2,6 @@ import argparse
 from typing import List, Tuple
 
 import numpy as np
-import requests
-
-import creds
 import plot
 
 MAX_POINTS = 10000
@@ -47,34 +44,6 @@ def generate_grid(
     # Create grid using list comprehension
     return [(lat, lon) for lat in lat_points for lon in lon_points]
 
-
-def snap_to_roads(coordinates: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
-    """Snap each coordinate independently to the nearest road using Google Roads API and return a list of lat/lon pairs."""
-    base_url = "https://roads.googleapis.com/v1/snapToRoads"
-    snapped_points = []
-    print(f"Snapping {len(coordinates)} coordinates to the nearest road...")
-    for lat, lon in coordinates:
-        # Construct the path parameter for a single coordinate
-        path_param = f"{lat},{lon}"
-        params = {"path": path_param, "interpolate": False, "key": creds.GOOGLE_API_KEY}
-        response = requests.get(base_url, params=params)
-
-        if response.status_code == 200:
-            # Parse response to extract the nearest road point
-            results = response.json().get("snappedPoints", [])
-            if results:
-                point = results[
-                    0
-                ]  # Take the first snapped point if multiple are returned
-                snapped_points.append(
-                    (point["location"]["latitude"], point["location"]["longitude"])
-                )
-        else:
-            print(f"API Request Failed for {lat},{lon}: {response.text}")
-
-    return snapped_points
-
-
 def get_point_grid(
     lat_start: float,
     lon_start: float,
@@ -108,15 +77,14 @@ def get_point_grid(
         )
         return None
 
-    snapped_points = snap_to_roads(grid_coordinates)
-    print(f"Received {len(snapped_points)} snapped points from the API.")
+    print(f"Received {len(grid_coordinates)} snapped points from the API.")
     if plot_points:
         # Define rectangle from the start and end points
         rectangle = [((lat_start, lon_start), (lat_end, lon_end))]
         plot.plot_coordinates_on_map(
-            snapped_points, rectangles=rectangle, map_title="Snapped Points"
+            grid_coordinates, rectangles=rectangle, map_title="Snapped Points"
         )
-    return snapped_points
+    return grid_coordinates
 
 
 def main():

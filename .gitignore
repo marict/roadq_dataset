@@ -20,6 +20,9 @@ images/
 *.gif
 *.svg
 
+# Predictions
+validation/predictions/*.csv
+
 #Maps
 maps/
 *.html
