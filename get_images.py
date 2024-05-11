@@ -45,6 +45,7 @@ def get_street_view_details(lat: float, lon: float, heading: int = 0, fov: int =
         "size": size,
         "fov": fov,
         "heading": heading,
+        "source": "outdoor"
     }
     print(f"Retrieving Street View image metadata for location: {lat},{lon}")
     # Fetch metadata
@@ -86,7 +87,6 @@ def get_image(lat: float, lon: float, heading: int = 0, fov: int = 120, size: st
     if (metadata["status"] == "ZERO_RESULTS" or metadata["status"] == "NOT_FOUND"):
         print(f"No Street View image found for the given location: {lat}, {lon}")
     elif image_url is not None:
-        print(f"Image capture date: {metadata['date']}")
         print(f"Image URL: {image_url}")
         # Download image
         image = get_street_view_image(image_url)
@@ -112,7 +112,8 @@ def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = F
         # Remove dots from lat and lon
         lat_str = str(lat).replace(".", "dot")
         lon_str = str(lon).replace(".", "dot")
-        output_file = output_dir / f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"
+        date_captured = metadata.get('date', 'no-date')
+        output_file = output_dir / f"streetview_{date_captured}_{lat_str}_{lon_str}_{heading}.jpg"
         with open(output_file, "wb") as file:
             file.write(image)
         print(f"Image saved to {output_file}")
