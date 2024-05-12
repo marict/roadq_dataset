@@ -1,6 +1,6 @@
 import math
 
-SPACING_METERS = 10
+DEFAULT_SPACING_METERS = 10
 
 # Earth radius in meters
 R = 6371000.0
@@ -8,8 +8,6 @@ R = 6371000.0
 
 class GeoPoint:
     def __init__(self, lat, lon):
-        if lon > 0:
-            print('Longitude is positive', lon)
         self.lat = lat
         self.lon = lon
     
@@ -40,50 +38,6 @@ class Point:
 
         return GeoPoint(lat_deg, lon_deg)
 
-
-# def p_dist(p1: GeoPoint, p2: GeoPoint):
-#     # Converting degrees to radians
-#     lat1, lon1, lat2, lon2 = map(math.radians, [p1.lat, p1.lon, p2.lat, p2.lon])
-
-#     # Difference in coordinates
-#     dlat = lat2 - lat1
-#     dlon = lon2 - lon1
-
-#     # Haversine formula
-#     a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
-#     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-#     # Distance in kilometers
-#     distance_km = R * c
-
-#     # Convert to meters
-#     return distance_km * 1000
-
-
-# class Street:
-#     def __init__(self, name: str):
-#         self.name = name
-#         self.points = []
-    
-#     def add_point(self, point: GeoPoint):
-#         min_dist = float('inf')
-#         # for p in self.points:
-#         #     min_dist = min(min_dist, p_dist(p, point))
-#         # if min_dist > 0.1:
-#         self.points.append(point)
-        
-#         # else:
-#         #     print('Too close', min_dist)
-
-#     def add_segment(self, p1: GeoPoint, p2: GeoPoint):
-#         d = p_dist(p1, p2)
-#         n = int(d / SPACING_METERS) + 1 # every 20 meters
-#         dx = (p2.lat - p1.lat) / n
-#         dy = (p2.lon - p1.lon) / n
-#         # self.add_point(p1)
-#         for i in range(1, n):
-#             self.add_point(GeoPoint(p1.lat + i * dx, p1.lon + i * dy))
-#         self.add_point(p2)
 
 
 class Node:
@@ -143,45 +97,23 @@ class Edge:
     
     def get_samples(self, origin_lat: float, origin_lon: float, interval: float):
         line = [p.to_point(origin_lat, origin_lon) for p in self.get_line()]
-        # line = self.get_line()
-        # interval = interval / R * 180
         acc = interval
         result = []
-
-        # for p in line:
-        #     result.append((p, p.to_point(origin_lat, origin_lon)))
 
         for i in range(1, len(line)):
             p = line[i]
             p_ = line[i-1]
             dx = p.x - p_.x
             dy = p.y - p_.y
-            # dx = p.lon - p_.lon
-            # dy = p.lat - p_.lat
             d = math.sqrt(dx * dx + dy * dy)
             dx /= d
             dy /= d
             while acc < d:
                 sample = Point(p_.x + acc * dx, p_.y + acc * dy)
                 result.append((sample, sample.to_geo_point(origin_lat, origin_lon)))
-                # sample = GeoPoint(p_.lat + acc * dy, p_.lon + acc * dx)
-                # result.append((sample, sample.to_point(origin_lat, origin_lon)))
                 acc += interval
             acc -= d
 
-        # import matplotlib.pyplot as plt
-        # import numpy as np
-        # plt.scatter([p.x for p, _ in result], [p.y for p, _ in result])
-        # # plt.scatter(
-        # #     [p.lon for p, _ in result], [p.lat for p, _ in result], 
-        # #     s=np.linspace(10, 200, len(result)), 
-        # #     alpha=0.5, 
-        # #     edgecolors='none')
-        # plt.show()
-
-        # plt.scatter([p.lon for _, p in result], [p.lat for _, p in result])
-        # plt.show()
-        
         return result
 
 

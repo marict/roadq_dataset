@@ -5,8 +5,6 @@ import os
 import glob
 import pandas as pd
 import re
-import pickle
-import dateutil
 import folium
 
 import sys
