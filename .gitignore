@@ -1,3 +1,12 @@
+# Overpass cache
+cache/
+.vscode/
+
+validation/seattle_streets*.csv
+validation/validation_samples.csv
+
+osm_data/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -2,3 +2,4 @@ requests
 folium
 tqdm
 numpy
+click

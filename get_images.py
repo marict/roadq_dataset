@@ -48,6 +48,7 @@ def get_street_view_details(
     lat: float,
     lon: float,
     heading: int = 0,
+    pitch: int = 0,
     fov: int = 120,
     size: str = "600x300",
     verbose=False,
@@ -61,6 +62,7 @@ def get_street_view_details(
         "size": size,
         "fov": fov,
         "heading": heading,
+        "pitch": pitch,
         "radius": "1000",
         "source": "outdoor",
     }
@@ -98,6 +100,7 @@ def get_image(
     lat: float,
     lon: float,
     heading: int = 0,
+    pitch: int = -30,
     fov: int = 120,
     size: str = "600x300",
     verbose=False,
@@ -113,7 +116,9 @@ def get_image(
         raise ValueError("Field of view must be between 10 and 120.")
     if size not in ["600x300", "400x400", "800x400"]:
         raise ValueError("Size must be one of '600x300', '400x400', or '800x400'.")
-    image_url, metadata = get_street_view_details(lat, lon, heading, fov, size)
+    image_url, metadata = get_street_view_details(
+        lat, lon, pitch=pitch, heading=heading, fov=fov, size=size
+    )
     if metadata["status"] == "ZERO_RESULTS" or metadata["status"] == "NOT_FOUND":
         print(f"No Street View image found for the given location: {lat}, {lon}")
     elif image_url is not None:
