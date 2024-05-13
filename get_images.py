@@ -6,6 +6,7 @@ import show_img
 import argparse
 
 import creds
+import csv
 import label_images
 
 
@@ -94,7 +95,7 @@ def get_image(lat: float, lon: float, heading: int = 0, fov: int = 120, size: st
     else:
         return None, None
         
-def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = False):
+def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = False, record_location: bool = False):
     if num_images < 1:
         raise ValueError("Number of images must be greater than 0.")
     if num_images > 5:
@@ -114,6 +115,11 @@ def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = F
         lon_str = str(lon).replace(".", "dot")
         date_captured = metadata.get('date', 'no-date')
         output_file = output_dir / f"streetview_{date_captured}_{lat_str}_{lon_str}_{heading}.jpg"
+        if record_location:
+            with open(r'location-data.csv', 'a') as f:
+                location_data = [metadata['location']['lat'], metadata['location']['lng'], f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"]
+                writer = csv.writer(f)
+                writer.writerow(location_data)
         with open(output_file, "wb") as file:
             file.write(image)
         print(f"Image saved to {output_file}")

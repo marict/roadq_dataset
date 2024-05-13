@@ -30,7 +30,7 @@ def get_images_in_grid(filename):
         lon = point[1]
         num_images = 3
         show_image = False
-        get_images.get_images(lat, lon, num_images, show_image)
+        get_images.get_images(lat, lon, num_images, show_image, record_location=True)
 
 
 if __name__ == "__main__":
