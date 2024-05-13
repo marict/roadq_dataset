@@ -1,12 +1,21 @@
 
 import get_images
+import argparse
 import csv
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "image_points", type=str, nargs='?',
+        help="Path to list of lat/lon coordinates as a CSV file (see sample-points.csv)"
+    )
+    args = parser.parse_args()
+    return args
 
-if __name__ == "__main__":
+def get_images_in_grid(filename):
     points = []
     stop_early = -1
-    with open('./sample-points.csv') as file:
+    with open(filename) as file:
         reader = csv.reader(file)
         for row in reader:
             points.append([float(row[0]), float(row[1])])
@@ -23,5 +32,14 @@ if __name__ == "__main__":
         show_image = False
         get_images.get_images(lat, lon, num_images, show_image)
 
+
+if __name__ == "__main__":
+    args = parse_args()
+    filename = './sample-points.csv'
+    if args.image_points != None:
+        get_images_in_grid(args.image_points)
+    else:
+        get_images_in_grid(filename)
+    print("Done!")
 
 
