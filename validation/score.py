@@ -8,6 +8,7 @@ import pandas as pd
 import simple_cache
 from tqdm import tqdm
 
+import show_img
 import get_images
 import get_predictions
 
@@ -75,8 +76,19 @@ def get_predictions_(validation_csv: pathlib.Path) -> pd.DataFrame:
         print(f"Latitude: {lat}, Longitude: {lon}")
         image_paths = get_images.get_images(lat, lon)
         pci_preds = get_predictions.get_predictions(image_paths)
+
+        valid_preds = []
+        # If any predictions are strings instead of numbers
+        for pci_pred, image_path in zip(pci_preds, image_paths):
+            if isinstance(pci_pred, str):
+                print(f"Invalid prediction: {pci_pred} for image {image_path}")
+                show_img.show_images(image_paths)
+            else:
+                valid_preds.append(pci_pred)
+        pci_preds = valid_preds
         if len(pci_preds) == 0:
-            raise ValueError(f"No predictions for image at {lat}, {lon}")
+            raise ValueError(f"No valid predictions for image at {lat}, {lon}. pci_preds: {pci_preds}")
+        
         pci_pred = np.min(pci_preds)
         predictions.append(
             {
@@ -87,7 +99,6 @@ def get_predictions_(validation_csv: pathlib.Path) -> pd.DataFrame:
                 "PCI_pred": pci_pred,
             }
         )
-
     predictions_df = pd.DataFrame(predictions)
     return predictions_df
 

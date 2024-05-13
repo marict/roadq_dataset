@@ -150,9 +150,10 @@ def center_crop_image(image: bytes, percent: int = 90) -> bytes:
 def get_images(
     lat: float,
     lon: float,
-    num_images: int = 1,
+    num_images: int = 3,
     show_image: bool = False,
     record_location: bool = False,
+    verbose = False,
 ) -> list[pathlib.Path]:
     image_paths = []
     if num_images < 1:
@@ -162,7 +163,8 @@ def get_images(
     headings = [0]
     if num_images > 1:
         headings = [heading for heading in range(0, 360, 360 // num_images)]
-    print(f"Generating images for headings: {headings}")
+    if verbose:
+        print(f"Generating images for headings: {headings}")
     for heading in headings:
         output_dir = pathlib.Path(IMAGES_DIR)
         image, metadata = get_image(lat, lon, heading=heading)
@@ -189,7 +191,8 @@ def get_images(
                 writer.writerow(location_data)
         with open(output_file, "wb") as file:
             file.write(image)
-        print(f"Image saved to {output_file}")
+        if verbose:
+            print(f"Image saved to {output_file}")
 
         if show_image:
             show_img.show_image(output_file)

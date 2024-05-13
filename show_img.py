@@ -24,6 +24,14 @@ def can_use_imgcat():
     return True
 
 
+def show_images(image_paths: list[pathlib.Path]):
+    """Show images in the terminal."""
+    if not can_use_imgcat():
+        print("imgcat is not available.")
+        return
+    for image_path in image_paths:
+        subprocess.run(["./imgcat.sh", str(image_path)])
+
 def show_image(image_path: pathlib.Path):
     """Show an image in the terminal."""
     if not can_use_imgcat():
