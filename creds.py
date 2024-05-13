@@ -3,6 +3,7 @@
 import json
 import pathlib
 
+
 def load_credentials():
     """Loads the credentials from credentials.json."""
     credentials_path = pathlib.Path("credentials.json")
@@ -11,7 +12,8 @@ def load_credentials():
         return None
     with open(credentials_path) as file:
         return json.load(file)
-    
+
+
 credentials = load_credentials()
 OPENAI_API_KEY = credentials.get("openai-api-key")
 GOOGLE_API_KEY = credentials.get("google-api-key")
