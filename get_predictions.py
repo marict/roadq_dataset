@@ -64,7 +64,7 @@ def analyze_with_openai(image_path: str, verbose=False):
                 "content": [
                     {
                         "type": "text",
-                        "text": 'Rate the road quality on a scale from 0 to 100. Your response should be in the form {"ROAD_QUALITY": N}, where N is a number between 0 and 100. If the image does not contain a road, please enter {"ROAD_QUALITY": "NO_ROAD"}. If the image is indoors, please enter {"ROAD_QUALITY": "INDOOR"}.',
+                        "text": "Rate the road quality on a scale from 0 to 100. Your response should be in the form {ROAD_QUALITY: N}, where N is a number between 0 and 100. If the image does not contain a road, please enter 'NO_ROAD'. If the image is indoors, please enter 'INDOOR'. Start at a score of N=100. If the pavement quality looks rough, lower your score by 20. If the road contains some cracks, lower your score by 30. If the road contains a lot of cracks, lower your score by 40. If a road contains a pothole, lower your score by 80.",
                     }
                 ],
             },
