@@ -1,19 +1,18 @@
-
+import argparse
 import pathlib
 
 import requests
-import show_img
-import argparse
 
 import creds
+import show_img
 import csv
-import label_images
 
 
-# Get location of this file 
+# Get location of this file
 THIS_DIR = pathlib.Path(__file__).parent
 IMAGES_DIR = THIS_DIR / "images"
 IMAGES_DIR.mkdir(exist_ok=True)
+
 
 # Add arguments for latitude and longitude
 def parse_args():
@@ -25,18 +24,32 @@ def parse_args():
         "lon", type=float, help="Longitude of the location to fetch Street View image."
     )
     parser.add_argument(
-        "--output-dir", required = True, type=str, help="Output directory to save the downloaded files."
+        "--output-dir",
+        required=True,
+        type=str,
+        help="Output directory to save the downloaded files.",
     )
     parser.add_argument(
         "--show-image", action="store_true", help="Display the downloaded image."
     )
     parser.add_argument(
-        '--num-images', type=int, default=1, help='Number of images to extract, the heading will be divided into equal parts starting at 0 and ending at 360'
+        "--num-images",
+        type=int,
+        default=1,
+        help="Number of images to extract, the heading will be divided into equal parts starting at 0 and ending at 360",
     )
     args = parser.parse_args()
     return args
 
-def get_street_view_details(lat: float, lon: float, heading: int = 0, fov: int = 120, size: str = "600x300"):
+
+def get_street_view_details(
+    lat: float,
+    lon: float,
+    heading: int = 0,
+    fov: int = 120,
+    size: str = "600x300",
+    verbose=False,
+):
     """Fetches the capture date and image URL for the closest Street View image to the given coordinates."""
     metadata_url = "https://maps.googleapis.com/maps/api/streetview/metadata"
     image_url_base = "https://maps.googleapis.com/maps/api/streetview"
@@ -46,9 +59,11 @@ def get_street_view_details(lat: float, lon: float, heading: int = 0, fov: int =
         "size": size,
         "fov": fov,
         "heading": heading,
+        "radius": "1000",
         "source": "outdoor"
     }
-    print(f"Retrieving Street View image metadata for location: {lat},{lon}")
+    if verbose:
+        print(f"Retrieving Street View image metadata for location: {lat},{lon}")
     # Fetch metadata
     metadata_response = requests.get(metadata_url, params=params)
     if metadata_response.status_code == 200:
@@ -59,20 +74,26 @@ def get_street_view_details(lat: float, lon: float, heading: int = 0, fov: int =
     else:
         return "Failed to retrieve metadata", None
 
-def get_street_view_image(image_url: str):
+
+def get_street_view_image(image_url: str, verbose=False):
     """Downloads the Street View image from the given URL."""
     # Add API key as query parameter to image_url
     image_url += f"&key={creds.GOOGLE_API_KEY}"
     # Get local filename from image_url
-    print(f"Retrieving Street View image from URL: {image_url}")
+    if verbose:
+        print(f"Retrieving Street View image from URL: {image_url}")
     response = requests.get(image_url)
     if response.status_code == 200:
         return response.content
-    print("Failed to download image.")
-    print(f"Response: {response.text}")
+    print(
+        f"Failed to download image from URL: {image_url}, status code: {response.status_code}, response: {response.text}"
+    )
     return None
 
-def get_image(lat: float, lon: float, heading: int = 0, fov: int = 120, size: str = "600x300"):
+
+def get_image(
+    lat: float, lon: float, heading: int = 0, fov: int = 120, size: str = "600x300"
+):
     # Retrieves metadata then retrieves the image from streetview api
     if lat < -90 or lat > 90:
         raise ValueError("Latitude must be between -90 and 90.")
@@ -85,7 +106,7 @@ def get_image(lat: float, lon: float, heading: int = 0, fov: int = 120, size: st
     if size not in ["600x300", "400x400", "800x400"]:
         raise ValueError("Size must be one of '600x300', '400x400', or '800x400'.")
     image_url, metadata = get_street_view_details(lat, lon, heading, fov, size)
-    if (metadata["status"] == "ZERO_RESULTS" or metadata["status"] == "NOT_FOUND"):
+    if metadata["status"] == "ZERO_RESULTS" or metadata["status"] == "NOT_FOUND":
         print(f"No Street View image found for the given location: {lat}, {lon}")
     elif image_url is not None:
         print(f"Image URL: {image_url}")
@@ -94,8 +115,12 @@ def get_image(lat: float, lon: float, heading: int = 0, fov: int = 120, size: st
         return image, metadata
     else:
         return None, None
-        
-def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = False, record_location: bool = False):
+
+
+def get_images(
+    lat: float, lon: float, num_images: int = 1, show_image: bool = False, record_location: bool = False
+) -> list[pathlib.Path]:
+    image_paths = []
     if num_images < 1:
         raise ValueError("Number of images must be greater than 0.")
     if num_images > 5:
@@ -109,7 +134,7 @@ def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = F
         image, metadata = get_image(lat, lon, heading=heading)
         if image is None:
             raise ValueError("Failed to download image.")
-        
+
         # Remove dots from lat and lon
         lat_str = str(lat).replace(".", "dot")
         lon_str = str(lon).replace(".", "dot")
@@ -126,6 +151,9 @@ def get_images(lat: float, lon: float, num_images: int = 1, show_image: bool = F
 
         if show_image:
             show_img.show_image(output_file)
+        image_paths.append(output_file)
+    return image_paths
+
 
 if __name__ == "__main__":
     args = parse_args()
@@ -135,5 +163,3 @@ if __name__ == "__main__":
     num_images = args.num_images
     print(f"Fetching {num_images} image(s) for location: {lat}, {lon}")
     get_images(lat, lon, num_images, show_image)
-
-   
