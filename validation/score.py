@@ -15,9 +15,10 @@ import show_img
 PREDICTIONS_DIR = pathlib.Path(__file__).parent / "predictions"
 PREDICTIONS_DIR.mkdir(exist_ok=True)
 
-SEED = 42   
+SEED = 42
 # Set random seed for reproducibility
 np.random.seed(SEED)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -66,9 +67,12 @@ def resample_data(
     return df.groupby(["QUANTIZED_LAT", "QUANTIZED_LON"]).first().reset_index(drop=True)
 
 
-@simple_cache.cache_it()
 def get_predictions_(
-    validation_csv: pathlib.Path, resample: bool = False, n_samples: int = None, latitude_resolution: float = 0.005, longitude_resolution: float = 0.005
+    validation_csv: pathlib.Path,
+    resample: bool = False,
+    n_samples: int = None,
+    latitude_resolution: float = 0.005,
+    longitude_resolution: float = 0.005,
 ) -> pd.DataFrame:
     """Get predictions from the model for the given validation CSV."""
     print(f"Getting predictions for {validation_csv}")
@@ -81,7 +85,7 @@ def get_predictions_(
 
     # Shuffle and sample samples
     val_df = val_df.sample(n=n_samples, random_state=SEED)
-    
+
     if resample:
         val_df = resample_data(val_df, latitude_resolution, longitude_resolution)
 
@@ -94,7 +98,7 @@ def get_predictions_(
         unit="row",
     ):
         print(f"Getting predictions for latitude: {lat}, longitude: {lon}")
-        image_paths = get_images.get_images(lat, lon)
+        image_paths = get_images.get_images(lat, lon, num_images=3)
         pci_preds = get_predictions.get_predictions(image_paths)
 
         valid_preds = []
@@ -112,8 +116,8 @@ def get_predictions_(
             )
             pci_pred = np.nan
         else:
-            pci_pred = np.min(pci_preds)
-        print(f"\tPrediction: {pci_pred}")
+            pci_pred = np.mean(pci_preds)
+        print(f"\tPredictions: {pci_preds}, final prediction: {pci_pred}")
         predictions.append(
             {
                 "TIMESTAMP": timestamp,
@@ -129,6 +133,12 @@ def get_predictions_(
 
 def get_metrics(predictions_df: pd.DataFrame) -> dict:
     """Calculate the metrics for the given predictions."""
+    # Remove nan rows
+    # Get number of nan rows
+    n_nan = predictions_df.isna().sum().sum()
+    if n_nan > 0:
+        print(f"Removed {n_nan} rows with NaN values")
+    predictions_df = predictions_df.dropna()
     mae = np.mean(np.abs(predictions_df["PCI"] - predictions_df["PCI_pred"]))
     rmse = np.sqrt(np.mean((predictions_df["PCI"] - predictions_df["PCI_pred"]) ** 2))
     return {"MAE": mae, "RMSE": rmse}
@@ -138,8 +148,18 @@ if __name__ == "__main__":
     # Example usage
     args = parse_args()
     validation_csv = pathlib.Path(args.validation_csv)
-    predictions_df = get_predictions_(validation_csv, resample=args.resample, n_samples=args.n_samples, latitude_resolution=args.latitude_resolution, longitude_resolution=args.longitude_resolution)
-    predictions_csv = PREDICTIONS_DIR / f"{validation_csv.stem}_predictions.csv"
+    predictions_df = get_predictions_(
+        validation_csv,
+        resample=args.resample,
+        n_samples=args.n_samples,
+        latitude_resolution=args.latitude_resolution,
+        longitude_resolution=args.longitude_resolution,
+    )
+    # Get datetime.now formatted nicely for a file name
+    timestamp = pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")
+    predictions_csv = (
+        PREDICTIONS_DIR / f"{validation_csv.stem}_{timestamp}_predictions.csv"
+    )
     predictions_df.to_csv(predictions_csv, index=False)
     print(f"Saved predictions to {predictions_csv}")
 
