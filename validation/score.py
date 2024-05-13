@@ -15,6 +15,9 @@ import show_img
 PREDICTIONS_DIR = pathlib.Path(__file__).parent / "predictions"
 PREDICTIONS_DIR.mkdir(exist_ok=True)
 
+SEED = 42   
+# Set random seed for reproducibility
+np.random.seed(SEED)
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -36,6 +39,9 @@ def parse_args():
         "--resample",
         action="store_true",
         help="Resample the data to the nearest resolution",
+    )
+    parser.add_argument(
+        "--n-samples", default=100, type=int, help="Number of samples to use"
     )
     return parser.parse_args()
 
@@ -62,7 +68,7 @@ def resample_data(
 
 @simple_cache.cache_it()
 def get_predictions_(
-    validation_csv: pathlib.Path, resample: bool = False
+    validation_csv: pathlib.Path, resample: bool = False, n_samples: int = None, latitude_resolution: float = 0.005, longitude_resolution: float = 0.005
 ) -> pd.DataFrame:
     """Get predictions from the model for the given validation CSV."""
     print(f"Getting predictions for {validation_csv}")
@@ -70,6 +76,12 @@ def get_predictions_(
     val_df = pd.read_csv(validation_csv)
     print(f"Loaded {len(val_df)} rows from {validation_csv}")
 
+    if n_samples is None:
+        n_samples = len(val_df)
+
+    # Shuffle and sample samples
+    val_df = val_df.sample(n=n_samples, random_state=SEED)
+    
     if resample:
         val_df = resample_data(val_df, latitude_resolution, longitude_resolution)
 
@@ -126,9 +138,7 @@ if __name__ == "__main__":
     # Example usage
     args = parse_args()
     validation_csv = pathlib.Path(args.validation_csv)
-    latitude_resolution = args.latitude_resolution
-    longitude_resolution = args.longitude_resolution
-    predictions_df = get_predictions_(validation_csv, resample=args.resample)
+    predictions_df = get_predictions_(validation_csv, resample=args.resample, n_samples=args.n_samples, latitude_resolution=args.latitude_resolution, longitude_resolution=args.longitude_resolution)
     predictions_csv = PREDICTIONS_DIR / f"{validation_csv.stem}_predictions.csv"
     predictions_df.to_csv(predictions_csv, index=False)
     print(f"Saved predictions to {predictions_csv}")
