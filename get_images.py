@@ -5,6 +5,8 @@ import requests
 
 import creds
 import show_img
+import csv
+
 
 # Get location of this file
 THIS_DIR = pathlib.Path(__file__).parent
@@ -58,6 +60,7 @@ def get_street_view_details(
         "fov": fov,
         "heading": heading,
         "radius": "1000",
+        "source": "outdoor"
     }
     if verbose:
         print(f"Retrieving Street View image metadata for location: {lat},{lon}")
@@ -106,7 +109,6 @@ def get_image(
     if metadata["status"] == "ZERO_RESULTS" or metadata["status"] == "NOT_FOUND":
         print(f"No Street View image found for the given location: {lat}, {lon}")
     elif image_url is not None:
-        print(f"Image capture date: {metadata['date']}")
         print(f"Image URL: {image_url}")
         # Download image
         image = get_street_view_image(image_url)
@@ -116,7 +118,7 @@ def get_image(
 
 
 def get_images(
-    lat: float, lon: float, num_images: int = 1, show_image: bool = False
+    lat: float, lon: float, num_images: int = 1, show_image: bool = False, record_location: bool = False
 ) -> list[pathlib.Path]:
     image_paths = []
     if num_images < 1:
@@ -136,10 +138,13 @@ def get_images(
         # Remove dots from lat and lon
         lat_str = str(lat).replace(".", "dot")
         lon_str = str(lon).replace(".", "dot")
-        output_file = (
-            output_dir
-            / f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"
-        )
+        date_captured = metadata.get('date', 'no-date')
+        output_file = output_dir / f"streetview_{date_captured}_{lat_str}_{lon_str}_{heading}.jpg"
+        if record_location:
+            with open(r'location-data.csv', 'a') as f:
+                location_data = [metadata['location']['lat'], metadata['location']['lng'], f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"]
+                writer = csv.writer(f)
+                writer.writerow(location_data)
         with open(output_file, "wb") as file:
             file.write(image)
         print(f"Image saved to {output_file}")
