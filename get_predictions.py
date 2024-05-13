@@ -30,10 +30,14 @@ def extract_vision_model_value(response: str, key: str) -> int:
     :param key: The key (case-sensitive) whose corresponding value is to be extracted.
     :return: The numerical value associated with the key.
     """
-    # Parse the JSON string into a dictionary
-    data = json.loads(response)
-    # Access and return the value for the specified key
-    return data[key]
+    try:
+        # Parse the JSON string into a dictionary
+        data = json.loads(response)
+        # Access and return the value for the specified key
+        return data[key]
+    except Exception as e:
+        print(f"Failed to extract value from response. Response: {response}")
+        raise e
 
 
 def get_predictions(image_paths: list[str]):

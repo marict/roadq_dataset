@@ -64,9 +64,11 @@ def get_predictions_(validation_csv: pathlib.Path) -> pd.DataFrame:
 
     val_df = resample_data(val_df, latitude_resolution, longitude_resolution)
 
+    # Estimated date of PCI measurement
+    timestamp = pd.to_datetime("2024-04-23")
     predictions = []
-    for timestamp, lat, lon, pci in tqdm(
-        val_df[["TIMESTAMP", "LATITUDE", "LONGITUDE", "PCI"]].values,
+    for lat, lon, pci in tqdm(
+        val_df[["LATITUDE", "LONGITUDE", "PCI"]].values,
         total=len(val_df),
         unit="row",
     ):

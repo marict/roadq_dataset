@@ -1,12 +1,13 @@
 import argparse
+import csv
+import io
 import pathlib
 
 import requests
+from PIL import Image
 
 import creds
 import show_img
-import csv
-
 
 # Get location of this file
 THIS_DIR = pathlib.Path(__file__).parent
@@ -60,7 +61,7 @@ def get_street_view_details(
         "fov": fov,
         "heading": heading,
         "radius": "1000",
-        "source": "outdoor"
+        "source": "outdoor",
     }
     if verbose:
         print(f"Retrieving Street View image metadata for location: {lat},{lon}")
@@ -117,8 +118,41 @@ def get_image(
         return None, None
 
 
+def center_crop_image(image: bytes, percent: int = 90) -> bytes:
+    """Crops the image to the given size."""
+    if not (0 < percent <= 100):
+        raise ValueError("Percent must be between 1 and 100.")
+
+    # Open the image from bytes
+    img = Image.open(io.BytesIO(image))
+
+    # Calculate the cropping dimensions
+    width, height = img.size
+    new_width = int(width * percent / 100)
+    new_height = int(height * percent / 100)
+
+    left = (width - new_width) // 2
+    top = (height - new_height) // 2
+    right = (width + new_width) // 2
+    bottom = (height + new_height) // 2
+
+    # Crop the image
+    cropped_img = img.crop((left, top, right, bottom))
+
+    # Save the cropped image back to bytes
+    img_byte_arr = io.BytesIO()
+    cropped_img.save(img_byte_arr, format=img.format)
+    cropped_img_bytes = img_byte_arr.getvalue()
+
+    return cropped_img_bytes
+
+
 def get_images(
-    lat: float, lon: float, num_images: int = 1, show_image: bool = False, record_location: bool = False
+    lat: float,
+    lon: float,
+    num_images: int = 1,
+    show_image: bool = False,
+    record_location: bool = False,
 ) -> list[pathlib.Path]:
     image_paths = []
     if num_images < 1:
@@ -135,14 +169,22 @@ def get_images(
         if image is None:
             raise ValueError("Failed to download image.")
 
+        image = center_crop_image(image)
+
         # Remove dots from lat and lon
         lat_str = str(lat).replace(".", "dot")
         lon_str = str(lon).replace(".", "dot")
-        date_captured = metadata.get('date', 'no-date')
-        output_file = output_dir / f"streetview_{date_captured}_{lat_str}_{lon_str}_{heading}.jpg"
+        date_captured = metadata.get("date", "no-date")
+        output_file = (
+            output_dir / f"streetview_{date_captured}_{lat_str}_{lon_str}_{heading}.jpg"
+        )
         if record_location:
-            with open(r'location-data.csv', 'a') as f:
-                location_data = [metadata['location']['lat'], metadata['location']['lng'], f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"]
+            with open(r"location-data.csv", "a") as f:
+                location_data = [
+                    metadata["location"]["lat"],
+                    metadata["location"]["lng"],
+                    f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg",
+                ]
                 writer = csv.writer(f)
                 writer.writerow(location_data)
         with open(output_file, "wb") as file:
