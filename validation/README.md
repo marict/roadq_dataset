@@ -4,6 +4,8 @@ The validation data was already prepared and saved in [validation_samples.csv](h
 
 **Eastimated date of PCI measurements: 2024-04-23**
 
+**One sample every 10 meters.**
+
 ## PCI Measurements
 
 Download the measurements from [seattle_streets_min.csv](https://docs.google.com/spreadsheets/d/1X_VBSyIlwAPGk2n_75YhInCifkS7YVr5vAFerM8fBMQ/edit#gid=1487968714) to the same directory as `validation_data.py`.
