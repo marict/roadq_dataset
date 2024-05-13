@@ -32,6 +32,41 @@ WEST = -122.374446
 NORTH = 47.649695
 SOUTH = 47.594825
 
+NODES: dict[int, Node] = {}
+EDGES: list[Edge] = []
+SAMPLE_EDGES: dict[tuple[str, str, str], Edge] = {}
+STREET_SEGMENTS: dict[str, StreetSegment] = {}
+STREET_NAMES = set()
+
+MAPPED_NAMES = {
+    'East Terrace Street': 'E TERRACE ST',
+    'Sound View Terrace West': 'SOUND VIEW TER W',
+    'South Lane Street': 'S LANE ST',
+    'West Montlake Place East': 'WEST MONTLAKE PL E',
+    'East Montlake Place East': 'EAST MONTLAKE PL E',
+    'East North Street': 'E NORTH ST',
+    'West Laurelhurst Drive Northeast': 'WEST LAURELHURST DR NE',
+    'East Laurelhurst Drive Northeast': 'EAST LAURELHURST DR NE',
+    'Terrace Street': 'TERRACE ST',
+}
+
+SKIPPED_ROADS = [
+    'PORTAGE BAY VIADUCT',
+    'MARTIN LUTHER KING JUNIOR WAY',
+    'VOLUNTEER PARK RD',
+    '2ND AVE EXTENSION S',
+    'FIR ST',
+    'MARTIN LUTHER KING JUNIOR WAY E',
+    'MARTIN LUTHER KING JUNIOR WAY S',
+    'E BOSTON TR',
+    'STADIUM PL S',
+    'E JOHN CT',
+    'COLMAN DOCK',
+    'SR 99',
+    'SR 99 TUNNEL',
+    'EVERGREEN POINT FLOATING BRIDGE',
+    'SR 99 OFFRAMP',
+]
 
 @click.group()
 def main():
@@ -39,10 +74,10 @@ def main():
 
 
 @main.command('download-data')
-@click.option('--east', default=EAST, help='East boundary')
-@click.option('--west', default=WEST, help='West boundary')
-@click.option('--north', default=NORTH, help='North boundary')
-@click.option('--south', default=SOUTH, help='South boundary')
+@click.option('--east', default=EAST, help='East boundary in decimal degrees.')
+@click.option('--west', default=WEST, help='West boundary in decimal degrees.')
+@click.option('--north', default=NORTH, help='North boundary in decimal degrees.')
+@click.option('--south', default=SOUTH, help='South boundary in decimal degrees.')
 def download_data(east: str, west: str, north: str, south: str):
     ox.config(use_cache=True, log_console=True, all_oneway=True)
 
@@ -175,7 +210,7 @@ def assign_segments_to_edges():
         SAMPLE_EDGES[segment_key] = edge
 
 
-def load_nodes_and_edges_from_osm(file):
+def load_nodes_and_edges_from_osm(file: str):
     if not file:
         files = glob.glob(f"{OSM_DIR}/*.graphml")
         file = max(files, key=os.path.getctime)
@@ -299,46 +334,9 @@ def normalize_street_name(name: str):
     return name.upper()
 
 
-def create_dir(dir):
+def create_dir(dir: str):
     if not os.path.exists(dir):
         os.makedirs(dir)
-
-
-NODES: dict[int, Node] = {}
-EDGES: list[Edge] = []
-SAMPLE_EDGES: dict[tuple[str, str, str], Edge] = {}
-STREET_SEGMENTS: dict[str, StreetSegment] = {}
-STREET_NAMES = set()
-
-MAPPED_NAMES = {
-    'East Terrace Street': 'E TERRACE ST',
-    'Sound View Terrace West': 'SOUND VIEW TER W',
-    'South Lane Street': 'S LANE ST',
-    'West Montlake Place East': 'WEST MONTLAKE PL E',
-    'East Montlake Place East': 'EAST MONTLAKE PL E',
-    'East North Street': 'E NORTH ST',
-    'West Laurelhurst Drive Northeast': 'WEST LAURELHURST DR NE',
-    'East Laurelhurst Drive Northeast': 'EAST LAURELHURST DR NE',
-    'Terrace Street': 'TERRACE ST',
-}
-
-SKIPPED_ROADS = [
-    'PORTAGE BAY VIADUCT',
-    'MARTIN LUTHER KING JUNIOR WAY',
-    'VOLUNTEER PARK RD',
-    '2ND AVE EXTENSION S',
-    'FIR ST',
-    'MARTIN LUTHER KING JUNIOR WAY E',
-    'MARTIN LUTHER KING JUNIOR WAY S',
-    'E BOSTON TR',
-    'STADIUM PL S',
-    'E JOHN CT',
-    'COLMAN DOCK',
-    'SR 99',
-    'SR 99 TUNNEL',
-    'EVERGREEN POINT FLOATING BRIDGE',
-    'SR 99 OFFRAMP',
-]
 
 
 if __name__ == "__main__":
