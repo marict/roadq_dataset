@@ -4,6 +4,7 @@ import io
 import pathlib
 
 import requests
+import simple_cache
 from PIL import Image
 
 import creds
@@ -92,8 +93,14 @@ def get_street_view_image(image_url: str, verbose=False):
     return None
 
 
+@simple_cache.cache_it("img_cache.cache")
 def get_image(
-    lat: float, lon: float, heading: int = 0, fov: int = 120, size: str = "600x300"
+    lat: float,
+    lon: float,
+    heading: int = 0,
+    fov: int = 120,
+    size: str = "600x300",
+    verbose=False,
 ):
     # Retrieves metadata then retrieves the image from streetview api
     if lat < -90 or lat > 90:
@@ -110,7 +117,8 @@ def get_image(
     if metadata["status"] == "ZERO_RESULTS" or metadata["status"] == "NOT_FOUND":
         print(f"No Street View image found for the given location: {lat}, {lon}")
     elif image_url is not None:
-        print(f"Image URL: {image_url}")
+        if verbose:
+            print(f"Image URL: {image_url}")
         # Download image
         image = get_street_view_image(image_url)
         return image, metadata
@@ -150,10 +158,10 @@ def center_crop_image(image: bytes, percent: int = 90) -> bytes:
 def get_images(
     lat: float,
     lon: float,
-    num_images: int = 3,
+    num_images: int = 1,
     show_image: bool = False,
     record_location: bool = False,
-    verbose = False,
+    verbose=False,
 ) -> list[pathlib.Path]:
     image_paths = []
     if num_images < 1:

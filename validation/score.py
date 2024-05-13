@@ -8,9 +8,9 @@ import pandas as pd
 import simple_cache
 from tqdm import tqdm
 
-import show_img
 import get_images
 import get_predictions
+import show_img
 
 PREDICTIONS_DIR = pathlib.Path(__file__).parent / "predictions"
 PREDICTIONS_DIR.mkdir(exist_ok=True)
@@ -31,6 +31,11 @@ def parse_args():
     )
     parser.add_argument(
         "--longitude-resolution", default=0.005, type=float, help="Longitude resolution"
+    )
+    parser.add_argument(
+        "--resample",
+        action="store_true",
+        help="Resample the data to the nearest resolution",
     )
     return parser.parse_args()
 
@@ -56,14 +61,17 @@ def resample_data(
 
 
 @simple_cache.cache_it()
-def get_predictions_(validation_csv: pathlib.Path) -> pd.DataFrame:
+def get_predictions_(
+    validation_csv: pathlib.Path, resample: bool = False
+) -> pd.DataFrame:
     """Get predictions from the model for the given validation CSV."""
     print(f"Getting predictions for {validation_csv}")
     # Load validation csv as pandas dataframe.
     val_df = pd.read_csv(validation_csv)
     print(f"Loaded {len(val_df)} rows from {validation_csv}")
 
-    val_df = resample_data(val_df, latitude_resolution, longitude_resolution)
+    if resample:
+        val_df = resample_data(val_df, latitude_resolution, longitude_resolution)
 
     # Estimated date of PCI measurement
     timestamp = pd.to_datetime("2024-04-23")
@@ -73,23 +81,27 @@ def get_predictions_(validation_csv: pathlib.Path) -> pd.DataFrame:
         total=len(val_df),
         unit="row",
     ):
-        print(f"Latitude: {lat}, Longitude: {lon}")
+        print(f"Getting predictions for latitude: {lat}, longitude: {lon}")
         image_paths = get_images.get_images(lat, lon)
         pci_preds = get_predictions.get_predictions(image_paths)
 
         valid_preds = []
         # If any predictions are strings instead of numbers
         for pci_pred, image_path in zip(pci_preds, image_paths):
+            show_img.show_images(image_paths)
             if isinstance(pci_pred, str):
                 print(f"Invalid prediction: {pci_pred} for image {image_path}")
-                show_img.show_images(image_paths)
             else:
                 valid_preds.append(pci_pred)
         pci_preds = valid_preds
         if len(pci_preds) == 0:
-            raise ValueError(f"No valid predictions for image at {lat}, {lon}. pci_preds: {pci_preds}")
-        
-        pci_pred = np.min(pci_preds)
+            print(
+                f"No valid predictions for image at {lat}, {lon}. pci_preds: {pci_preds}"
+            )
+            pci_pred = np.nan
+        else:
+            pci_pred = np.min(pci_preds)
+        print(f"\tPrediction: {pci_pred}")
         predictions.append(
             {
                 "TIMESTAMP": timestamp,
@@ -116,7 +128,7 @@ if __name__ == "__main__":
     validation_csv = pathlib.Path(args.validation_csv)
     latitude_resolution = args.latitude_resolution
     longitude_resolution = args.longitude_resolution
-    predictions_df = get_predictions_(validation_csv)
+    predictions_df = get_predictions_(validation_csv, resample=args.resample)
     predictions_csv = PREDICTIONS_DIR / f"{validation_csv.stem}_predictions.csv"
     predictions_df.to_csv(predictions_csv, index=False)
     print(f"Saved predictions to {predictions_csv}")

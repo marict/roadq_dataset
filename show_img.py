@@ -32,6 +32,7 @@ def show_images(image_paths: list[pathlib.Path]):
     for image_path in image_paths:
         subprocess.run(["./imgcat.sh", str(image_path)])
 
+
 def show_image(image_path: pathlib.Path):
     """Show an image in the terminal."""
     if not can_use_imgcat():

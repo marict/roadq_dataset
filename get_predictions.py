@@ -4,6 +4,7 @@ import base64
 import json
 
 import requests
+import simple_cache
 
 import creds
 
@@ -50,6 +51,7 @@ def get_predictions(image_paths: list[str]):
     return pcis
 
 
+@simple_cache.cache_it("openai_vision.cache")
 def analyze_with_openai(image_path: str, verbose=False):
     """Analyzes the image for road conditions using OpenAI's Vision API."""
     if verbose:
@@ -68,7 +70,7 @@ def analyze_with_openai(image_path: str, verbose=False):
                 "content": [
                     {
                         "type": "text",
-                        "text": "Rate the road quality on a scale from 0 to 100. Your response should be in the form {\"ROAD_QUALITY\": N}, where N is a number between 0 and 100. If the image does not contain a road, please enter {\"ROAD_QUALITY\": \"NO_ROAD\"}. If the image is indoors, please enter {\"ROAD_QUALITY\": \"INDOOR\"}. Start at a score of N=100. If the pavement quality looks rough, lower your score by 20. If the road contains some cracks, lower your score by 30. If the road contains a lot of cracks, lower your score by 40. If a road contains a pothole, lower your score by 80.",
+                        "text": 'Rate the road quality on a scale from 0 to 100. Your response should be in the form {"ROAD_QUALITY": N}, where N is a number between 0 and 100. If the image does not contain a road, please enter {"ROAD_QUALITY": "NO_ROAD"}. If the image is indoors, please enter {"ROAD_QUALITY": "INDOOR"}. Start at a score of N=100. If the pavement quality looks rough, lower your score by 20. If the road contains some cracks, lower your score by 30. If the road contains a lot of cracks, lower your score by 40. If a road contains a pothole, lower your score by 80.',
                     }
                 ],
             },
