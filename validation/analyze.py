@@ -4,6 +4,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
+GROUND_TRUTH_TIMESTAMP = pd.Timestamp("2024-04-23 00:00:00")
+
 
 def parse_args() -> argparse.ArgumentParser:
     """Parse command line arguments.
@@ -35,11 +37,11 @@ def load_data(csv_path: str) -> pd.DataFrame:
     return pd.read_csv(csv_path)
 
 
-def plot_predictions(df: pd.DataFrame) -> None:
+def plot(df: pd.DataFrame) -> None:
     """Scatter plot the PCI and PCI_pred values.
 
     Args:
-        df (pd.DataFrame): DataFrame containing 'PCI' and 'PCI_pred' columns.
+        df (pd.DataFrame): DataFrame containing 'PCI', 'PCI_pred', and 'PCI_pred_normalized' columns.
     """
     plt.figure(figsize=(10, 6))
     plt.scatter(
@@ -51,11 +53,31 @@ def plot_predictions(df: pd.DataFrame) -> None:
         label="PCI vs PCI_pred",
     )
     plt.xlabel("PCI")
-    plt.ylabel("PCI_pred")
-    plt.title("Scatter Plot of PCI vs PCI_pred")
+    plt.ylabel("PCI_pred / PCI_pred_normalized")
+    plt.title("Scatter Plot of PCI vs PCI_pred and PCI vs PCI_pred_normalized")
     plt.legend()
     plt.grid(True)
     plt.show()
+    plt.clf()
+
+    # Create a scatter plot of PCI_SquaredError vs TimeStampDelta
+    if "PCI_SquaredError" in df.columns and "TimeStampDeltaMonths" in df.columns:
+        plt.figure(figsize=(10, 6))
+        plt.scatter(
+            df["TimeStampDeltaMonths"],
+            df["PCI_SquaredError"],
+            alpha=0.5,
+            edgecolors="k",
+            color="green",
+            label="PCI_SquaredError vs TimeStampDeltaMonths",
+        )
+        plt.xlabel("TimeStampDeltaMonths")
+        plt.ylabel("PCI_SquaredError")
+        plt.title("Scatter Plot of PCI_SquaredError vs TimeStampDeltaMonths")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+        plt.clf()
 
 
 def main() -> None:
@@ -69,10 +91,29 @@ def main() -> None:
 
     df = load_data(csv_path)
 
+    min_value = df["PCI_pred"].min()
+    max_value = df["PCI_pred"].max()
+    df["PCI_pred_normalized"] = (
+        (df["PCI_pred"] - min_value) / (max_value - min_value)
+    ) * 100
+
+    df["PRED_TIMESTAMP"] = pd.to_datetime(df["PRED_TIMESTAMP"])
+    df["TimeStampDelta"] = (
+        GROUND_TRUTH_TIMESTAMP - df["PRED_TIMESTAMP"]
+    ).dt.total_seconds()
+    # Convert TimeStampDelta from seconds to months
+    seconds_per_month = 30.44 * 24 * 60 * 60
+    df["TimeStampDeltaMonths"] = df["TimeStampDelta"] / seconds_per_month
+
+    df["PCI_SquaredError"] = (df["PCI_pred"] - df["PCI"]) ** 2
+
+    # Order by TimestampDelta
+    df = df.sort_values(by="TimeStampDeltaMonths")
+
     if "PCI" not in df.columns or "PCI_pred" not in df.columns:
         raise ValueError("The CSV file must contain 'PCI' and 'PCI_pred' columns.")
 
-    plot_predictions(df)
+    plot(df)
 
 
 if __name__ == "__main__":

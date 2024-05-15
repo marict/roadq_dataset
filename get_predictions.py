@@ -1,6 +1,7 @@
 import argparse
 import ast
 import base64
+from typing import List
 
 import requests
 import simple_cache
@@ -41,7 +42,7 @@ def extract_vision_model_value(response: str, key: str) -> int:
     return value
 
 
-def get_predictions(image_paths: list[str]):
+def get_predictions(image_paths: List[str]):
     """Labels the images at the given paths using OpenAI's Vision API."""
     pcis = []
     for image_path in image_paths:

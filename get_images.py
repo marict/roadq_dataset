@@ -2,7 +2,9 @@ import argparse
 import csv
 import io
 import pathlib
+from typing import List
 
+import pandas as pd
 import requests
 import simple_cache
 from PIL import Image
@@ -167,7 +169,7 @@ def get_images(
     show_image: bool = False,
     record_location: bool = False,
     verbose=False,
-) -> list[pathlib.Path]:
+) -> List[pathlib.Path]:
     image_paths = []
     if num_images < 1:
         raise ValueError("Number of images must be greater than 0.")
@@ -210,7 +212,9 @@ def get_images(
         if show_image:
             show_img.show_image(output_file)
         image_paths.append(output_file)
-    return image_paths
+    # All metadata should have the same date (since they are just different headings)
+    timestamp = pd.to_datetime(metadata["date"])
+    return image_paths, timestamp
 
 
 if __name__ == "__main__":
