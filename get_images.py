@@ -1,12 +1,14 @@
 import argparse
+import csv
+import io
 import pathlib
 
 import requests
+import simple_cache
+from PIL import Image
 
 import creds
 import show_img
-import csv
-
 
 # Get location of this file
 THIS_DIR = pathlib.Path(__file__).parent
@@ -46,6 +48,7 @@ def get_street_view_details(
     lat: float,
     lon: float,
     heading: int = 0,
+    pitch: int = 0,
     fov: int = 120,
     size: str = "600x300",
     verbose=False,
@@ -59,8 +62,9 @@ def get_street_view_details(
         "size": size,
         "fov": fov,
         "heading": heading,
+        "pitch": pitch,
         "radius": "1000",
-        "source": "outdoor"
+        "source": "outdoor",
     }
     if verbose:
         print(f"Retrieving Street View image metadata for location: {lat},{lon}")
@@ -91,8 +95,15 @@ def get_street_view_image(image_url: str, verbose=False):
     return None
 
 
+@simple_cache.cache_it("img_cache.cache")
 def get_image(
-    lat: float, lon: float, heading: int = 0, fov: int = 120, size: str = "600x300"
+    lat: float,
+    lon: float,
+    heading: int = 0,
+    pitch: int = -30,
+    fov: int = 120,
+    size: str = "600x300",
+    verbose=False,
 ):
     # Retrieves metadata then retrieves the image from streetview api
     if lat < -90 or lat > 90:
@@ -105,11 +116,14 @@ def get_image(
         raise ValueError("Field of view must be between 10 and 120.")
     if size not in ["600x300", "400x400", "800x400"]:
         raise ValueError("Size must be one of '600x300', '400x400', or '800x400'.")
-    image_url, metadata = get_street_view_details(lat, lon, heading, fov, size)
+    image_url, metadata = get_street_view_details(
+        lat, lon, pitch=pitch, heading=heading, fov=fov, size=size
+    )
     if metadata["status"] == "ZERO_RESULTS" or metadata["status"] == "NOT_FOUND":
         print(f"No Street View image found for the given location: {lat}, {lon}")
     elif image_url is not None:
-        print(f"Image URL: {image_url}")
+        if verbose:
+            print(f"Image URL: {image_url}")
         # Download image
         image = get_street_view_image(image_url)
         return image, metadata
@@ -117,8 +131,42 @@ def get_image(
         return None, None
 
 
+def center_crop_image(image: bytes, percent: int = 90) -> bytes:
+    """Crops the image to the given size."""
+    if not (0 < percent <= 100):
+        raise ValueError("Percent must be between 1 and 100.")
+
+    # Open the image from bytes
+    img = Image.open(io.BytesIO(image))
+
+    # Calculate the cropping dimensions
+    width, height = img.size
+    new_width = int(width * percent / 100)
+    new_height = int(height * percent / 100)
+
+    left = (width - new_width) // 2
+    top = (height - new_height) // 2
+    right = (width + new_width) // 2
+    bottom = (height + new_height) // 2
+
+    # Crop the image
+    cropped_img = img.crop((left, top, right, bottom))
+
+    # Save the cropped image back to bytes
+    img_byte_arr = io.BytesIO()
+    cropped_img.save(img_byte_arr, format=img.format)
+    cropped_img_bytes = img_byte_arr.getvalue()
+
+    return cropped_img_bytes
+
+
 def get_images(
-    lat: float, lon: float, num_images: int = 1, show_image: bool = False, record_location: bool = False
+    lat: float,
+    lon: float,
+    num_images: int = 1,
+    show_image: bool = False,
+    record_location: bool = False,
+    verbose=False,
 ) -> list[pathlib.Path]:
     image_paths = []
     if num_images < 1:
@@ -128,26 +176,36 @@ def get_images(
     headings = [0]
     if num_images > 1:
         headings = [heading for heading in range(0, 360, 360 // num_images)]
-    print(f"Generating images for headings: {headings}")
+    if verbose:
+        print(f"Generating images for headings: {headings}")
     for heading in headings:
         output_dir = pathlib.Path(IMAGES_DIR)
         image, metadata = get_image(lat, lon, heading=heading)
         if image is None:
             raise ValueError("Failed to download image.")
 
+        image = center_crop_image(image)
+
         # Remove dots from lat and lon
         lat_str = str(lat).replace(".", "dot")
         lon_str = str(lon).replace(".", "dot")
-        date_captured = metadata.get('date', 'no-date')
-        output_file = output_dir / f"streetview_{date_captured}_{lat_str}_{lon_str}_{heading}.jpg"
+        date_captured = metadata.get("date", "no-date")
+        output_file = (
+            output_dir / f"streetview_{date_captured}_{lat_str}_{lon_str}_{heading}.jpg"
+        )
         if record_location:
-            with open(r'location-data.csv', 'a') as f:
-                location_data = [metadata['location']['lat'], metadata['location']['lng'], f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg"]
+            with open(r"location-data.csv", "a") as f:
+                location_data = [
+                    metadata["location"]["lat"],
+                    metadata["location"]["lng"],
+                    f"streetview_{metadata['date']}_{lat_str}_{lon_str}_{heading}.jpg",
+                ]
                 writer = csv.writer(f)
                 writer.writerow(location_data)
         with open(output_file, "wb") as file:
             file.write(image)
-        print(f"Image saved to {output_file}")
+        if verbose:
+            print(f"Image saved to {output_file}")
 
         if show_image:
             show_img.show_image(output_file)

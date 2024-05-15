@@ -1,16 +1,20 @@
-
-import get_images
 import argparse
 import csv
+
+import get_images
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "image_points", type=str, nargs='?',
-        help="Path to list of lat/lon coordinates as a CSV file (see sample-points.csv)"
+        "image_points",
+        type=str,
+        nargs="?",
+        help="Path to list of lat/lon coordinates as a CSV file (see sample-points.csv)",
     )
     args = parser.parse_args()
     return args
+
 
 def get_images_in_grid(filename):
     points = []
@@ -25,7 +29,7 @@ def get_images_in_grid(filename):
                 stop_early += 1
 
     for point in points:
-        print(f'Pulling images for point {point[0]} and {point[1]}')
+        print(f"Pulling images for point {point[0]} and {point[1]}")
         lat = point[0]
         lon = point[1]
         num_images = 3
@@ -35,11 +39,9 @@ def get_images_in_grid(filename):
 
 if __name__ == "__main__":
     args = parse_args()
-    filename = './sample-points.csv'
+    filename = "./sample-points.csv"
     if args.image_points != None:
         get_images_in_grid(args.image_points)
     else:
         get_images_in_grid(filename)
     print("Done!")
-
-
