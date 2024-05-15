@@ -1,7 +1,6 @@
 import argparse
 import ast
 import base64
-import json
 
 import requests
 import simple_cache
@@ -64,11 +63,22 @@ To estimate a PCI based on an image of a road, follow these steps:
 5. **Estimate PCI**: Based on the observed defects and their severity/extent, estimate a PCI score (0 = failed, 100 = excellent).
 
 **Example Breakdown**:
-- **Surface Cracks**: Few hairline cracks with no spalling - low severity.
-- **Potholes**: One or two small potholes - medium severity.
-- **Rutting**: Minor rutting - low severity.
+- **Surface Cracks**: Many hairline cracks with no spalling - high severity.
+- **Potholes**: One or two potholes - high severity.
+- **Rutting**: medium rutting - medium severity.
+Estimated PCI: The road might be in the "bad" range, approximately 0-30.
 
-Estimated PCI: The road might be in the "good" range, approximately 70-85.
+**Example Breakdown**:
+- **Surface Cracks**: Few hairline cracks with no spalling - medium severity,
+- **Potholes**: One or two small potholes - medium severity.
+- **Rutting**: minor rutting - low severity.
+Estimated PCI: The road might be in the "okay" range, approximately 30-80.
+
+**Example Breakdown**:
+- **Surface Cracks**: No visible cracks - low severity.
+- **Potholes**: No potholes - low severity.
+- **Rutting**: No rutting - low severity.
+Estimated PCI: The road might be in the "good" range, approximately 80-100.
 
 Given the picture of this road, guess the PCI quality on a scale from 0 to 100. Make sure to only look at the road in front of the camera, not any other roads in view. Do not score sidewalks or non-roads. Provide a brief explanation of your reasoning and a confidence score in the form {"ROAD_QUALITY": N}, where N is a PCI value between 0 and 100. If the image does not contain anything resembling a road, enter {"ROAD_QUALITY": "NO_ROAD"}. If the image is indoors, enter {"ROAD_QUALITY": "INDOOR"}.
 """

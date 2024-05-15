@@ -72,9 +72,6 @@ def get_predictions_(
     val_df = pd.read_csv(validation_csv)
     print(f"Loaded {len(val_df)} rows from {validation_csv}")
 
-    if n_samples is None:
-        n_samples = len(val_df)
-
     if linear_validation_set:
         print(f"Using a linear validation set")
         new_val_df = pd.DataFrame()
@@ -88,6 +85,9 @@ def get_predictions_(
         print(f"Using a linear validation set with {len(new_val_df)} samples")
         # Order by PCI
         val_df = new_val_df
+
+    if n_samples is None:
+        n_samples = len(val_df)
 
     # Sample top n-samples
     val_df = val_df.sample(n_samples, random_state=SEED)
@@ -121,7 +121,7 @@ def get_predictions_(
             )
             pci_pred = np.nan
         else:
-            pci_pred = np.mean(pci_preds)
+            pci_pred = np.min(pci_preds)
         print(
             f"\tPredictions: {pci_preds}, final prediction: {pci_pred}, actual PCI: {pci}"
         )
