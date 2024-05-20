@@ -1,0 +1,221 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2023
+
+
+% ready for submission
+\usepackage[preprint]{neurips_2023}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2023}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2023}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2023}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+
+
+\title{Evaluating Road Quality Using Google Street View and GPT-4o}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{
+  Paul Curry \\
+  University of Washington \\
+  Seattle, WA \\
+  \texttt{paulmc@cs.washington.edu} \\
+  % examples of more authors
+  \And
+  Mack Fey \\
+  University of Washington \\
+  Seattle, WA \\
+  \texttt{mackfey@cs.washington.edu} \\
+  \And
+  Vini Ruela \\
+  University of Washington \\
+  Seattle, WA \\
+  \texttt{vinir@cs.washington.edu} \\
+  \And
+  Dmitri Murphy \\
+  University of Washington \\
+  Seattle, WA \\
+  \texttt{dmitri2@cs.washington.edu} \\
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+  The abstract paragraph should be indented \nicefrac{1}{2}~inch (3~picas) on
+  both the left- and right-hand margins. Use 10~point type, with a vertical
+  spacing (leading) of 11~points.  The word \textbf{Abstract} must be centered,
+  bold, and in point size 12. Two line spaces precede the abstract. The abstract
+  must be limited to one paragraph.
+\end{abstract}
+
+
+\section{Background}
+
+Road quality is a critical factor in infrastructure management, impacting transportation efficiency, vehicle maintenance costs, and safety. Poor road conditions can lead to increased vehicle repair costs, slower travel times, and higher accident rates, disproportionately affecting underfunded and underserved communities. According to recent studies, approximately 20\% of urban roads in the United States are rated as in "poor" condition (Gordon 2023), contributing to significant economic and social costs. Rough road conditions can cost an estimated additional \$0.31 per mile traveled, with more severe impacts in poorer and predominantly black neighborhoods (Currier et al, 2023).
+
+\subsection{Reasoning}
+Traditional methods for assessing road quality, such as manual surveys, satellite imagery, and drone footage, have various limitations including high costs, limited coverage, and significant resource requirements. These challenges underscore the need for a more efficient, scalable, and cost-effective solution.
+This project aims to address these challenges by leveraging Google Street View imagery and AI-vision algorithms to determine the PCI (Pavement Condition Index) of the street in the image and create a comprehensive and real-time road-quality dataset for the city of Seattle. Google Street View offers extensive coverage of road networks at a granular level, making it an ideal data source for this purpose. The recent advancements in AI and computer vision, particularly the capabilities of models like GPT-4o, provide powerful tools for extracting detailed information from images.
+
+\subsection{Hypothesis}
+Our hypothesis is that by employing AI-vision algorithms on Google Street View imagery, we can accurately assess road quality and generate meaningful insights. These insights can be aggregated into a comprehensive dataset, enabling transportation authorities and infrastructure managers to prioritize maintenance efforts, optimize budget allocation, and predict deterioration patterns more effectively.
+
+In this progress report, we detail our methodology, including data collection, model specification, and experimental setup. We present preliminary results that demonstrate the potential of our approach and discuss the challenges and limitations encountered thus far. Finally, we outline the next steps and future directions for this project.
+
+
+\section{Related Work}
+
+The assessment of road quality using various technological approaches has been an active area of research, with several methodologies being explored to provide accurate and scalable solutions. Traditional methods, such as manual surveys and on-site inspections, are resource-intensive and limited in scope. To overcome these limitations, researchers have explored the use of satellite imagery, drone footage, and smartphone sensors.
+
+\paragraph{Satellite Imagery:}
+Brewer et al. (2021) utilized high-resolution satellite imagery combined with transfer learning techniques to predict road quality. Their approach demonstrated that satellite imagery could provide a broad overview of road conditions across large geographic areas. However, the resolution limitations and potential obstructions like trees and buildings can affect the accuracy of the assessments.
+
+\paragraph{Drone Footage:}
+Pan et al. (2018) investigated the use of unmanned aerial vehicles (UAVs) equipped with multispectral cameras to detect pavement potholes and cracks. This method offers high-resolution data and flexibility in data collection but can be costly and logistically challenging for large-scale deployment.
+
+\paragraph{Smartphone Sensors:}
+Basavaraju et al. (2020) proposed a machine learning approach utilizing data from smartphone sensors to detect road surface anomalies. By leveraging the widespread availability of smartphones, this method provides a cost-effective solution. However, the variability in sensor quality and the need for user participation are notable drawbacks.
+
+\paragraph{Google Street View:}
+Lank et al. (2022) explored the use of Google Street View images for road quality classification using custom pre-trained neural networks. Their work demonstrated the potential of street-level imagery for detailed road condition assessments. Our approach builds on this foundation by employing the GPT-4o model, a general-purpose vision model, to analyze Google Street View images, which can reduce the need for developing custom models and enhance scalability.
+
+\paragraph{Machine Learning Algorithms:}
+Recent advancements in machine learning and computer vision have significantly improved the capability to analyze visual data. For instance, Thegeya et al. (2022) applied machine learning algorithms on satellite imagery for road quality monitoring, showcasing the potential for automated analysis in this domain. Similarly, Brkic et al. (2023) evaluated various machine learning algorithms for road segmentation on high-resolution satellite imagery, contributing to the body of knowledge on the effectiveness of these techniques.
+
+Our project differentiates itself by integrating Google Street View imagery with the advanced capabilities of the GPT-4o model. This combination aims to provide a scalable, cost-effective, and accurate solution for road quality assessment. By leveraging the extensive coverage of Google Street View and the robust analytical power of AI-vision algorithms, our approach addresses the limitations of previous methodologies and offers a promising direction for future research and application in infrastructure management.
+
+
+\section{Methodology}
+
+\subsection{Dataset}
+Since the purpose of this project is to produce a new dataset, we will discuss the source and reference datasets. Our source dataset that we will be using for input is street-level imagery obtained from Google Street View. Google Street View provides comprehensive coverage of road networks across various geographical locations, offering a rich source of visual data for analysis. We will collect images at various locations around our survey area (see Appendix B) with at least 3 different angles from each location with a resolution of 600x300 or better. For cross-validation, we will use a database of street pavement quality and other properties provided by the city of Seattle. This will be used to evaluate the predictions of the AI model and make sure they are aligned with the measurements made by people. The specific fields that will be contained in the dataset we produce are discussed in Appendix D.
+
+\subsection{Model Specification}
+Our project is centered around creating a new dataset, hence we will not be training a model from scratch. However, we will be using the GPT-4o (Vision) model from OpenAI to extract information from images we collect for the dataset. To do this, we will be supplying specific prompts to the GPT-4o model as specified in Appendix C, and will be using prompt engineering to fine-tune results. As a general vision model, we hypothesize that GPT4 will be able to identify road-quality issues such as cracks, potholes and bumps and can adjust the quality score per our prompts. Using a general purpose model (GPT-4o) will save costs and development time compared to developing a custom one.
+
+\subsection{Experimental Setup}
+We will collect data by grid sampling a square region in downtown Seattle, which is defined by the following latitude and longitude coordinates: (47.6214,-122.3369), (47.5910,-122.2973). This area is densely populated and serves as an effective baseline for validating our process. We plan to sample at a fine resolution of 50m, mirroring the resolution used in previous road quality studies.
+
+For each sample location, we will gather three street view images from the closest available street view within a 100m radius of the specified coordinates. We will capture images at headings of 0, 180 and 270 degrees to provide a comprehensive view of the road conditions. Each image will be analyzed using the GPT-4o to assess the road quality based on the International Roughness Index and Pavement Condition Index, as well as to determine if the captured scene is a road or not (flagged as NOT\_ROAD in cases such as indoor scenes). Averaging the metrics across the three images will help minimize variance and provide a more accurate assessment of each sampling site. The bounding box of the sampling region is visualized in Appendix B. We also estimate that the project will have around \$176.85 in data processing costs, which we have broken down in Appendix F.
+
+The experimental setup for our project will primarily consist of Python code that calls the Google Street View Static API, saves and pre-processes the image and then calls the GPT-4o API to rate the road quality. To produce a good dataset we will need to verify the data we are collecting is valid and not a hallucination of the GPT-4o model. To do this, we will be cross-validating our dataset with an existing Seattle road quality dataset that has ratings for different sections of road. Each image that is evaluated will be geolocated to the closest section of road, for which the official dataset provides the Pavement Condition Index (PCI). More information about how we will be calculating and adjusting readings can be found in Appendix G.
+
+
+\section{Preliminary Results}
+
+TODO
+
+\section{Discussion}
+
+TODO
+
+
+\section{Limitations}
+
+While our preliminary results are promising, several limitations need to be addressed to ensure the robustness and reliability of our approach. These limitations include challenges related to data quality, model performance, and scalability.
+
+\paragraph{Data Quality:}
+The quality of Google Street View images varies significantly depending on factors such as weather conditions, lighting, and visual obstructions. Poor image quality can lead to inaccurate assessments by the GPT-4o model. For instance, shadows, rain, or snow can obscure road features, making it difficult for the model to accurately identify cracks, potholes, and other road defects. Additionally, obstructions like parked cars or overhanging trees can block parts of the road, further complicating the analysis.
+
+\paragraph{Geolocation Accuracy:}
+Ensuring precise geolocation for each image is crucial for accurate cross-referencing with the official Seattle road quality dataset. Inaccurate geolocation can result in mismatches between the model's assessments and the official data. This issue is particularly relevant when images are taken near intersections or in densely populated areas where GPS signals can be less reliable.
+
+\paragraph{Model Calibration:}
+The GPT-4o model requires careful calibration to accurately assess road quality. Fine-tuning the model's prompts and adjusting its sensitivity to different types of road damage are necessary to improve accuracy. However, this process is complex and time-consuming, and there is a risk of overfitting the model to the specific characteristics of the training data, which can reduce its generalizability to other regions or conditions.
+
+\paragraph{False Positives and Negatives:}
+Our preliminary results indicate a small percentage of false positives (images incorrectly flagged as poor quality roads) and false negatives (poor quality roads not identified by the model). These errors are often due to variations in image quality and the inherent limitations of the model's visual processing capabilities. Reducing these errors is critical to ensuring the reliability of the dataset.
+
+\paragraph{Scalability:}
+While Google Street View provides extensive coverage, scaling this approach to cover larger areas or multiple cities requires significant computational resources and data processing capabilities. The cost of accessing high-resolution images and running the GPT-4o model on a large scale can be prohibitive, limiting the feasibility of widespread implementation without substantial investment.
+
+\paragraph{Data Privacy and Ethical Considerations:}
+Using Google Street View images for road quality assessment raises potential privacy and ethical concerns. Ensuring that the data collection and processing methods comply with privacy regulations and ethical guidelines is essential to protect individuals' privacy and maintain public trust.
+
+\paragraph{Model Generalizability:}
+The GPT-4o model's performance may vary when applied to different geographic regions or road conditions. Factors such as differences in road construction materials, maintenance practices, and environmental conditions can affect the model's accuracy. Further testing and validation are required to ensure that the model generalizes well across diverse settings.
+
+\paragraph{Temporal Variability:}
+Road conditions can change rapidly due to weather events, construction activities, and wear and tear. Capturing these temporal variations requires frequent updates to the dataset, which can be resource-intensive. Ensuring that the dataset remains current and reflects the latest road conditions is a significant challenge.
+
+Addressing these limitations is crucial for the success of our project. Future work will focus on improving image preprocessing techniques, enhancing model calibration, and developing strategies to ensure geolocation accuracy. Additionally, expanding the dataset to cover more areas and conducting further validation will help mitigate these limitations and enhance the robustness and scalability of our approach.
+
+By acknowledging and addressing these limitations, we aim to refine our methodology and provide a reliable tool for infrastructure management that can be adopted by cities worldwide.
+
+
+
+\section*{References}
+
+
+
+{
+\small
+Ahmed, Nabil et al. “Classifying Road Quality Using Satellite Imagery in Metro Detroit.” (2022).
+
+Brkic, Ivan et al. “Analysis Of Machine Learning Algorithms Performances For Road Segmentation On Very High-Resolution Satellite Imagery As Support Of Road Infrastructure Assessment.” SGEM International Multidisciplinary Scientific GeoConference EXPO Proceedings (2023)
+
+Brewer E, Lin J, Kemper P, Hennin J, Runfola D. Predicting road quality using high resolution satellite imagery: A transfer learning approach. PLoS One. 2021 Jul 9;16(7):e0253370. doi: 10.1371/journal.pone.0253370. PMID: 34242250; PMCID: PMC8270213.
+
+Basavaraju, Akanksh et al. “A Machine Learning Approach to Road Surface Anomaly Assessment Using Smartphone Sensors.” IEEE Sensors Journal 20 (2020): 2635-2647.
+
+Cai, Qing, et al. “Applying machine learning and google street view to explore effects of drivers’ visual environment on traffic safety” Transportation Research Part C: Emerging Technologies, Volume 135 2022, ISSN 0968-090X, https://doi.org/10.1016/j.trc.2021.103541
+
+Ceniza, Ralph Dominic and John Paul C. Vergara. “Utilization of Convolutional Neural Networks and Satellite Images for the Prediction of Road Quality in the Philippines.” 2023 International Conference on Advanced Mechatronics, Intelligent Manufacture and Industrial Automation (ICAMIMIA) (2023): 255-260.
+
+Currier, L., Kreindler, G., \& Glaeser, E. December 2023. Infrastructure Inequality: Who Pays The Cost Of Road Roughness? https://www.nber.org/system/files/working\_papers/w31981/w31981.pdf
+
+Dange, Trupti K.. “Review on Estimation of Road Quality using Mobile Sensors \& Machine Learning Techniques.” Bioscience Biotechnology Research Communications (2020)
+
+Gordon, D. April 2, 2023. Road Conditions \& spending by state: Does more money mean better roads?. MoneyGeek.com. https://www.moneygeek.com/living/states-worst-road-infrastructure/
+
+Lank, M., Friedjungová, M. (2022). Road Quality Classification. In: Sclaroff, S., Distante, C., Leo, M., Farinella, G.M., Tombari, F. (eds) Image Analysis and Processing – ICIAP 2022. ICIAP 2022. Lecture Notes in Computer Science, vol 13232. Springer, Cham. https://doi.org/10.1007/978-3-031-06430-2\_46
+
+Nagy, Roland et al. “Machine learning-based soft-sensor development for road quality classification.” Journal of Vibration and Control (2023)
+
+Pan Y.,  Zhang X., Cervone G.  and Yang L., "Detection of Asphalt Pavement Potholes and Cracks Based on the Unmanned Aerial Vehicle Multispectral Imagery," in IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, vol. 11, no. 10, pp. 3701-3712, Oct. 2018, doi: 10.1109/JSTARS.2018.2865528
+
+Thegeya, Aaron et al. “Application of Machine Learning Algorithms on Satellite Imagery for Road Quality Monitoring: An Alternative Approach to Road Quality Surveys.” SSRN Electronic Journal (2022)
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
