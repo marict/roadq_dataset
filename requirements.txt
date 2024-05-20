@@ -3,3 +3,5 @@ folium
 tqdm
 numpy
 click
+pandas
+simple_cache
