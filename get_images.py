@@ -2,10 +2,12 @@ import argparse
 import csv
 import io
 import pathlib
+import numpy as np
 
 import requests
 import simple_cache
 from PIL import Image
+import matplotlib.pyplot as plt
 
 import creds
 import show_img
@@ -131,7 +133,7 @@ def get_image(
         return None, None
 
 
-def center_crop_image(image: bytes, percent: int = 90) -> bytes:
+def center_crop_image(image: bytes, percent: int = 90):
     """Crops the image to the given size."""
     if not (0 < percent <= 100):
         raise ValueError("Percent must be between 1 and 100.")
@@ -157,7 +159,7 @@ def center_crop_image(image: bytes, percent: int = 90) -> bytes:
     cropped_img.save(img_byte_arr, format=img.format)
     cropped_img_bytes = img_byte_arr.getvalue()
 
-    return cropped_img_bytes
+    return cropped_img_bytes, cropped_img
 
 
 def get_images(
@@ -211,6 +213,44 @@ def get_images(
             show_img.show_image(output_file)
         image_paths.append(output_file)
     return image_paths
+
+@simple_cache.cache_it("get_image_and_save.cache")
+def get_image_and_save(
+    lat: float,
+    lon: float,
+    heading: int = 0,
+    pitch: int = -30,
+    fov: int = 120,
+    size: str = "600x300",
+    verbose=False,
+    show_image=False,
+):
+    output_dir = pathlib.Path(IMAGES_DIR)
+    image, metadata = get_image(lat, lon, heading, pitch, fov, size, verbose=verbose)
+    if image is None:
+        raise ValueError("Failed to download image.")
+
+    image, pil_image = center_crop_image(image)
+
+    # Remove dots from lat and lon
+    lat_str = str(lat).replace(".", "dot")
+    lon_str = str(lon).replace(".", "dot")
+    date_captured = metadata.get("date", "no-date")
+    output_file = (
+        output_dir / f"streetview_{date_captured}_{lat_str}_{lon_str}_{heading}.jpg"
+    )
+    with open(output_file, "wb") as file:
+        file.write(image)
+    if verbose:
+        print(f"Image saved to {output_file}")
+
+    if show_image:
+        plt.imshow(pil_image)
+        plt.show()
+
+    return output_file, metadata
+
+
 
 
 if __name__ == "__main__":
