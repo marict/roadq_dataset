@@ -35,6 +35,9 @@ def parse_args():
         "--n-samples", default=None, type=int, help="Number of samples to use"
     )
     parser.add_argument(
+        "--use-smallest-segments", action="store_true", help="Use the smallest segments"
+    )
+    parser.add_argument(
         "--linear-validation-set",
         action="store_true",
         help="Use a validation set that scales lineraly from 0 to 100 PCI",
@@ -52,36 +55,13 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_prediction(lat: int, lon: int, show_images: bool = False):
-    print(f"Getting predictions for latitude: {lat}, longitude: {lon}")
-    image_paths, timestamp = get_images.get_images(lat, lon, num_images=2)
-    pci_preds = get_predictions.get_predictions(image_paths)
-
-    valid_preds = []
-    for pci_pred, image_path in zip(pci_preds, image_paths):
-        if show_images:
-            show_img.show_images(image_paths)
-        # If any predictions are strings instead of numbers.
-        if isinstance(pci_pred, str):
-            print(f"Invalid prediction: {pci_pred} for image {image_path}")
-        else:
-            valid_preds.append(pci_pred)
-    pci_preds = valid_preds
-    if len(pci_preds) == 0:
-        print(f"No valid predictions for image at {lat}, {lon}. pci_preds: {pci_preds}")
-        pci_pred = np.nan
-    else:
-        pci_pred = np.min(pci_preds)
-    print(f"\tPredictions: {pci_preds}, final prediction: {pci_pred}")
-    return pci_pred, timestamp
-
-
 def get_predictions_(
     validation_csv: pathlib.Path,
     n_samples: int = None,
     linear_validation_set: bool = False,
     scan: bool = False,
     show_images: bool = False,
+    use_smallest_segments: bool = False,
 ) -> pd.DataFrame:
     """Get predictions from the model for the given validation CSV."""
     print(f"Getting predictions for {validation_csv}")
@@ -105,13 +85,16 @@ def get_predictions_(
         val_df = new_val_df
 
     if scan:
+        val_df["SEGMENT_LENGTH"] = val_df.groupby("SEGID")["PCI"].transform("count")
         # Group by segment ID
         segments = val_df.groupby("SEGID").first().reset_index()
-        # Order by PCI
-        segments = segments.sort_values(by="PCI")
+        if use_smallest_segments:
+            segments = segments.sort_values(by="SEGMENT_LENGTH")
+        else:
+            segments = segments.sample(frac=1, random_state=SEED)
         if n_samples is None:
             n_samples = len(segments)
-        segments = segments.sample(n_samples, random_state=SEED)
+        segments = segments[:n_samples]
         predictions = []
         # For each segment, get all samples
         for i, (seg_id, pci) in enumerate(segments[["SEGID", "PCI"]].values):
@@ -123,7 +106,9 @@ def get_predictions_(
             min_timestamp = pd.Timestamp.max
             for index, segment in segment_df.iterrows():
                 lat, lon = segment["LATITUDE"], segment["LONGITUDE"]
-                pci_pred, timestamp = get_prediction(lat, lon, show_images=show_images)
+                pci_pred, timestamp = get_predictions.get_prediction(
+                    lat, lon, show_images=show_images
+                )
                 score = min(score, pci_pred)
                 min_timestamp = min(min_timestamp, timestamp)
                 print(
@@ -147,8 +132,6 @@ def get_predictions_(
         # Sample top n-samples
         val_df = val_df.sample(n_samples, random_state=SEED)
 
-        val_df = val_df.sort_values(by="PCI")
-
         # Estimated date of PCI measurement
         timestamp = pd.to_datetime("2024-04-23")
         predictions = []
@@ -157,7 +140,7 @@ def get_predictions_(
             total=len(val_df),
             unit="row",
         ):
-            pci_pred, pred_timestamp = get_prediction(lat, lon)
+            pci_pred, pred_timestamp = get_predictions.get_prediction(lat, lon)
             predictions.append(
                 {
                     "TIMESTAMP": timestamp,
@@ -195,6 +178,7 @@ if __name__ == "__main__":
         linear_validation_set=args.linear_validation_set,
         scan=args.scan,
         show_images=args.show_images,
+        use_smallest_segments=args.use_smallest_segments,
     )
     # Convert args into a format that can be used in the file name
     args_str = "_".join(

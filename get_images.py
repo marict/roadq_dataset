@@ -214,7 +214,9 @@ def get_images(
         image_paths.append(output_file)
     # All metadata should have the same date (since they are just different headings)
     timestamp = pd.to_datetime(metadata["date"])
-    return image_paths, timestamp
+    lat = metadata["location"]["lat"]
+    lon = metadata["location"]["lng"]
+    return image_paths, timestamp, lat, lon
 
 
 if __name__ == "__main__":
