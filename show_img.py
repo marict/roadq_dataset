@@ -3,6 +3,7 @@ import argparse
 import os
 import pathlib
 import subprocess
+from typing import List
 
 
 def parse_args():
@@ -24,7 +25,7 @@ def can_use_imgcat():
     return True
 
 
-def show_images(image_paths: list[pathlib.Path]):
+def show_images(image_paths: List[pathlib.Path]):
     """Show images in the terminal."""
     if not can_use_imgcat():
         print("imgcat is not available.")

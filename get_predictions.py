@@ -1,11 +1,15 @@
 import argparse
 import ast
 import base64
+from typing import List
 
+import numpy as np
 import requests
 import simple_cache
 
 import creds
+import get_images
+import show_img
 
 
 # Add arguments for latitude and longitude
@@ -36,12 +40,14 @@ def extract_vision_model_value(response: str, key: str) -> int:
         # Extract the value of the key
         value = ast.literal_eval(response.split(":")[1].split("}")[0].strip())
     except Exception as e:
-        print(f"Failed to extract value for key {key}. Error: {e}")
+        print(
+            f"Failed to extract value for key {key}. Response: {response}, Error: {e}"
+        )
         return "COULD_NOT_EXTRACT_VALUE"
     return value
 
 
-def get_predictions(image_paths: list[str]):
+def get_predictions(image_paths: List[str]):
     """Labels the images at the given paths using OpenAI's Vision API."""
     pcis = []
     for image_path in image_paths:
@@ -66,21 +72,25 @@ To estimate a PCI based on an image of a road, follow these steps:
 - **Surface Cracks**: Many hairline cracks with no spalling - high severity.
 - **Potholes**: One or two potholes - high severity.
 - **Rutting**: medium rutting - medium severity.
-Estimated PCI: The road might be in the "bad" range, approximately 0-30.
+Estimated PCI: {"ROAD_QUALITY": 0}
 
 **Example Breakdown**:
 - **Surface Cracks**: Few hairline cracks with no spalling - medium severity,
 - **Potholes**: One or two small potholes - medium severity.
 - **Rutting**: minor rutting - low severity.
-Estimated PCI: The road might be in the "okay" range, approximately 30-80.
+Estimated PCI: {"ROAD_QUALITY": 30}
 
 **Example Breakdown**:
 - **Surface Cracks**: No visible cracks - low severity.
 - **Potholes**: No potholes - low severity.
 - **Rutting**: No rutting - low severity.
-Estimated PCI: The road might be in the "good" range, approximately 80-100.
+Estimated PCI: {"ROAD_QUALITY": 80}.
 
-Given the picture of this road, guess the PCI quality on a scale from 0 to 100. Make sure to only look at the road in front of the camera, not any other roads in view. Do not score sidewalks or non-roads. Provide a brief explanation of your reasoning and a confidence score in the form {"ROAD_QUALITY": N}, where N is a PCI value between 0 and 100. If the image does not contain anything resembling a road, enter {"ROAD_QUALITY": "NO_ROAD"}. If the image is indoors, enter {"ROAD_QUALITY": "INDOOR"}.
+NOTES:
+- A large pothole should drop PCI to 0
+- A large crack running across the road should drop PCI to 0
+
+Given the picture of this road, guess the PCI quality on a scale from 0 to 100. Make sure to only look at the road in front of the camera, not any other roads in view. Do not score sidewalks, train tracks, or non-roads. Provide a brief explanation of your reasoning and a confidence score in the form {"ROAD_QUALITY": N}, where N is a PCI value between 0 and 100. If the image does not contain anything resembling a road, enter {"ROAD_QUALITY": "NO_ROAD"}. If the image is indoors, enter {"ROAD_QUALITY": "INDOOR"}.
 """
 
 
@@ -128,6 +138,30 @@ def analyze_with_openai(image_path: str, verbose=False):
     else:
         print(f"Failed to analyze image. Response: {response.text}")
         return "Failed to analyze image."
+
+
+def get_prediction(lat: int, lon: int, show_images: bool = False):
+    print(f"Getting predictions for latitude: {lat}, longitude: {lon}")
+    image_paths, timestamp, lat, lon = get_images.get_images(lat, lon, num_images=3)
+    pci_preds = get_predictions(image_paths)
+
+    valid_preds = []
+    for pci_pred, image_path in zip(pci_preds, image_paths):
+        if show_images:
+            show_img.show_images(image_paths)
+        # If any predictions are strings instead of numbers.
+        if isinstance(pci_pred, str):
+            print(f"Invalid prediction: {pci_pred} for image {image_path}")
+        else:
+            valid_preds.append(pci_pred)
+    pci_preds = valid_preds
+    if len(pci_preds) == 0:
+        print(f"No valid predictions for image at {lat}, {lon}. pci_preds: {pci_preds}")
+        pci_pred = np.nan
+    else:
+        pci_pred = np.mean(pci_preds)
+    print(f"\tPredictions: {pci_preds}, final prediction: {pci_pred}")
+    return pci_pred, timestamp, lat, lon
 
 
 if __name__ == "__main__":

@@ -2,7 +2,10 @@ import argparse
 from typing import List, Tuple
 
 import numpy as np
+import pandas as pd
+from tqdm import tqdm
 
+import get_predictions
 import plot
 
 MAX_POINTS = 10000
@@ -26,6 +29,9 @@ def parse_args() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--plot-points", action="store_true", help="Plot the snapped points on a map."
+    )
+    parser.add_argument(
+        "--output-file", type=str, help="Output file for the snapped points."
     )
     return parser.parse_args()
 
@@ -99,7 +105,20 @@ def main():
         args.resolution,
         args.plot_points,
     )
-    print(f"Snapped points: {snapped_points}")
+    points_to_pci = []
+    # Predict on point grid
+    for point in tqdm(snapped_points):
+        # Predict PCI for each point
+        pci, timestamp, lat, lon = get_predictions.get_prediction(
+            lat=point[0], lon=point[1], show_images=True
+        )
+        points_to_pci.append(
+            {"lat": lat, "lon": lon, "pci": pci, "timestamp": timestamp}
+        )
+    # Save dataframe to csv
+    df = pd.DataFrame(points_to_pci)
+    df.to_csv(args.output_file, index=False)
+    print(f"Points: {snapped_points}")
 
 
 if __name__ == "__main__":
