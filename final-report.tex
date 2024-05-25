@@ -22,7 +22,12 @@
 % to avoid loading the natbib package, add option nonatbib:
 %    \usepackage[nonatbib]{neurips_2023}
 
-
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage[title]{appendix}
+\usepackage{blindtext}
+\usepackage{hanging}
+\usepackage{enumitem}
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
 \usepackage{hyperref}       % hyperlinks
@@ -33,8 +38,10 @@
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
 
+% graphics path
+\graphicspath{ {./report_images/} }
 
-\title{Evaluating Road Quality Using Google Street View and GPT-4o}
+\title{Evaluating Road Quality Using Street View Data and a Language Vision Model}
 
 
 % The \author macro works with any number of authors. There are two commands
@@ -77,113 +84,205 @@
 
 
 \begin{abstract}
-  The abstract paragraph should be indented \nicefrac{1}{2}~inch (3~picas) on
-  both the left- and right-hand margins. Use 10~point type, with a vertical
-  spacing (leading) of 11~points.  The word \textbf{Abstract} must be centered,
-  bold, and in point size 12. Two line spaces precede the abstract. The abstract
-  must be limited to one paragraph.
+Road quality is crucial for transportation efficiency, safety, and economic stability. Poor road conditions disproportionately impact underfunded communities, leading to higher maintenance costs and increased accident rates.
+Traditional methods for assessing road quality are costly and resource-intensive, necessitating innovative solutions. This project uses Google Street View imagery and AI-vision algorithms to evaluate road quality in Seattle,
+ aiming to develop a robust, cost-effective methodology. By leveraging models like GPT-4, we hypothesize that AI can accurately assess road conditions, providing an efficient,
+ scalable solution for infrastructure management. We validate our model using a ground truth dataset from the Seattle Department of Transportation (SDOT).  Preliminary results show potential,
+ though challenges with data quality and temporal discrepancies remain. This progress report outlines our methodology, initial findings, and future steps to improve the accuracy and applicability of our road quality assessment model.
 \end{abstract}
 
 
 \section{Background}
 
-Road quality is a critical factor in infrastructure management, impacting transportation efficiency, vehicle maintenance costs, and safety. Poor road conditions can lead to increased vehicle repair costs, slower travel times, and higher accident rates, disproportionately affecting underfunded and underserved communities. According to recent studies, approximately 20\% of urban roads in the United States are rated as in "poor" condition (Gordon 2023), contributing to significant economic and social costs. Rough road conditions can cost an estimated additional \$0.31 per mile traveled, with more severe impacts in poorer and predominantly black neighborhoods (Currier et al, 2023).
+Road quality is a critical factor in infrastructure management, impacting transportation efficiency, vehicle maintenance costs, and safety. Poor road conditions can lead to increased vehicle repair costs, slower travel times, and higher accident rates, disproportionately affecting underfunded and underserved communities. Recent studies indicate that approximately 20\% of urban roads in the United States are rated as "poor" (Gordon, 2023), contributing to significant economic and social costs. Rough road conditions can cost an estimated additional \$0.31 per mile traveled, with more severe impacts in poorer and predominantly Black neighborhoods (Currier et al., 2023).
 
-\subsection{Reasoning}
 Traditional methods for assessing road quality, such as manual surveys, satellite imagery, and drone footage, have various limitations including high costs, limited coverage, and significant resource requirements. These challenges underscore the need for a more efficient, scalable, and cost-effective solution.
-This project aims to address these challenges by leveraging Google Street View imagery and AI-vision algorithms to determine the PCI (Pavement Condition Index) of the street in the image and create a comprehensive and real-time road-quality dataset for the city of Seattle. Google Street View offers extensive coverage of road networks at a granular level, making it an ideal data source for this purpose. The recent advancements in AI and computer vision, particularly the capabilities of models like GPT-4o, provide powerful tools for extracting detailed information from images.
+This project aims to address these challenges by leveraging Google Street View imagery and AI-vision algorithms to determine the Pavement Condition Index (PCI) of streets and create a comprehensive and real-time road-quality dataset for the city of Seattle. Google Street View offers extensive coverage of road networks at a granular level, making it an ideal data source for this purpose. Recent advancements in AI and computer vision, particularly the capabilities of models like GPT-4o, provide powerful tools for extracting detailed information from images.
 
-\subsection{Hypothesis}
-Our hypothesis is that by employing AI-vision algorithms on Google Street View imagery, we can accurately assess road quality and generate meaningful insights. These insights can be aggregated into a comprehensive dataset, enabling transportation authorities and infrastructure managers to prioritize maintenance efforts, optimize budget allocation, and predict deterioration patterns more effectively.
-
-In this progress report, we detail our methodology, including data collection, model specification, and experimental setup. We present preliminary results that demonstrate the potential of our approach and discuss the challenges and limitations encountered thus far. Finally, we outline the next steps and future directions for this project.
-
+Our hypothesis is that by employing AI-vision algorithms on Google Street View imagery, we can accurately assess road quality and generate meaningful insights. These insights could be aggregated into a comprehensive dataset, serving as a proof of concept for this methodology and enabling transportation authorities and infrastructure managers to prioritize maintenance efforts, optimize budget allocation, and predict deterioration patterns more effectively. This method can be used across any region that has relatively granular ground-level image coverage from Street View or another source. However, to demonstrate the efficacy of this method, we need to validate it against real PCI measurements done by human workers.
+\\\\In this progress report, we detail our methodology, including data collection, model specification, and experimental setup. We present preliminary results that demonstrate the potential of our approach and discuss the challenges and limitations encountered thus far. Finally, we outline the next steps and future directions for this project.
 
 \section{Related Work}
 
-The assessment of road quality using various technological approaches has been an active area of research, with several methodologies being explored to provide accurate and scalable solutions. Traditional methods, such as manual surveys and on-site inspections, are resource-intensive and limited in scope. To overcome these limitations, researchers have explored the use of satellite imagery, drone footage, and smartphone sensors.
 
-\paragraph{Satellite Imagery:}
-Brewer et al. (2021) utilized high-resolution satellite imagery combined with transfer learning techniques to predict road quality. Their approach demonstrated that satellite imagery could provide a broad overview of road conditions across large geographic areas. However, the resolution limitations and potential obstructions like trees and buildings can affect the accuracy of the assessments.
+%%%
 
-\paragraph{Drone Footage:}
-Pan et al. (2018) investigated the use of unmanned aerial vehicles (UAVs) equipped with multispectral cameras to detect pavement potholes and cracks. This method offers high-resolution data and flexibility in data collection but can be costly and logistically challenging for large-scale deployment.
 
-\paragraph{Smartphone Sensors:}
-Basavaraju et al. (2020) proposed a machine learning approach utilizing data from smartphone sensors to detect road surface anomalies. By leveraging the widespread availability of smartphones, this method provides a cost-effective solution. However, the variability in sensor quality and the need for user participation are notable drawbacks.
+The assessment of road quality has advanced with technological approaches like satellite imagery, drone footage, and smartphone sensors, moving beyond resource-intensive manual surveys.
 
-\paragraph{Google Street View:}
-Lank et al. (2022) explored the use of Google Street View images for road quality classification using custom pre-trained neural networks. Their work demonstrated the potential of street-level imagery for detailed road condition assessments. Our approach builds on this foundation by employing the GPT-4o model, a general-purpose vision model, to analyze Google Street View images, which can reduce the need for developing custom models and enhance scalability.
+\textbf{Satellite Imagery:} Brewer et al. (2021) used high-resolution satellite imagery with transfer learning to predict road quality over large areas, though accuracy can be impacted by obstructions.
 
-\paragraph{Machine Learning Algorithms:}
-Recent advancements in machine learning and computer vision have significantly improved the capability to analyze visual data. For instance, Thegeya et al. (2022) applied machine learning algorithms on satellite imagery for road quality monitoring, showcasing the potential for automated analysis in this domain. Similarly, Brkic et al. (2023) evaluated various machine learning algorithms for road segmentation on high-resolution satellite imagery, contributing to the body of knowledge on the effectiveness of these techniques.
+\textbf{Drone Footage:} Pan et al. (2018) employed UAVs with multispectral cameras to detect road damage, offering high-resolution data but facing cost and logistical challenges.
 
-Our project differentiates itself by integrating Google Street View imagery with the advanced capabilities of the GPT-4o model. This combination aims to provide a scalable, cost-effective, and accurate solution for road quality assessment. By leveraging the extensive coverage of Google Street View and the robust analytical power of AI-vision algorithms, our approach addresses the limitations of previous methodologies and offers a promising direction for future research and application in infrastructure management.
+\textbf{Smartphone Sensors:} Basavaraju et al. (2020) utilized smartphone sensors and machine learning to detect road anomalies, a cost-effective method limited by sensor variability and user participation.
+
+\textbf{Google Street View:} Lank et al. (2022) used Google Street View images with neural networks for road quality classification. Our approach enhances this by integrating GPT-4 for scalable, accurate assessments, leveraging Google Street View's coverage and advanced AI.
+
+Recent advancements in machine learning have improved visual data analysis, with studies like Thegeya et al. (2022) and Brkic et al. (2023) showcasing the potential for automated road monitoring and segmentation.
+Our project combines Google Street View imagery with GPT-4 to offer a robust solution for road quality assessment, addressing previous limitations and promising future applications in infrastructure management.
+
+%%%
 
 
 \section{Methodology}
 
-\subsection{Dataset}
-Since the purpose of this project is to produce a new dataset, we will discuss the source and reference datasets. Our source dataset that we will be using for input is street-level imagery obtained from Google Street View. Google Street View provides comprehensive coverage of road networks across various geographical locations, offering a rich source of visual data for analysis. We will collect images at various locations around our survey area (see Appendix B) with at least 3 different angles from each location with a resolution of 600x300 or better. For cross-validation, we will use a database of street pavement quality and other properties provided by the city of Seattle. This will be used to evaluate the predictions of the AI model and make sure they are aligned with the measurements made by people. The specific fields that will be contained in the dataset we produce are discussed in Appendix D.
+\subsection{Validation}
+For validating our model, we used a database of street quality as PCI (pavement condition index) provided by the city of Seattle. This was used to evaluate the predictions of the model and make sure they are aligned with the measurements used by domain experts. The preliminary results offered some insights on how to proceed with the data collection on a larger scale. The specific fields that will be contained in the dataset we produce are discussed in Appendix D.
 
 \subsection{Model Specification}
-Our project is centered around creating a new dataset, hence we will not be training a model from scratch. However, we will be using the GPT-4o (Vision) model from OpenAI to extract information from images we collect for the dataset. To do this, we will be supplying specific prompts to the GPT-4o model as specified in Appendix C, and will be using prompt engineering to fine-tune results. As a general vision model, we hypothesize that GPT4 will be able to identify road-quality issues such as cracks, potholes and bumps and can adjust the quality score per our prompts. Using a general purpose model (GPT-4o) will save costs and development time compared to developing a custom one.
+For this project, we did not train a model from scratch. Instead we used a pre-existing GPT-4o (Vision) model offered via the OpenAI API to predict PCI. Using a general purpose model (GPT-4o) saved costs and development time compared to developing a custom one. To utilize GPT-4o, we supplied specific prompts to the model as specified in Appendix C, and used prompt engineering to fine-tune results. As a general vision model, we hypothesized that GPT4 would be able to identify road-quality issues such as cracks, potholes and bumps and could adjust the quality score per our prompts.
 
 \subsection{Experimental Setup}
-We will collect data by grid sampling a square region in downtown Seattle, which is defined by the following latitude and longitude coordinates: (47.6214,-122.3369), (47.5910,-122.2973). This area is densely populated and serves as an effective baseline for validating our process. We plan to sample at a fine resolution of 50m, mirroring the resolution used in previous road quality studies.
 
-For each sample location, we will gather three street view images from the closest available street view within a 100m radius of the specified coordinates. We will capture images at headings of 0, 180 and 270 degrees to provide a comprehensive view of the road conditions. Each image will be analyzed using the GPT-4o to assess the road quality based on the International Roughness Index and Pavement Condition Index, as well as to determine if the captured scene is a road or not (flagged as NOT\_ROAD in cases such as indoor scenes). Averaging the metrics across the three images will help minimize variance and provide a more accurate assessment of each sampling site. The bounding box of the sampling region is visualized in Appendix B. We also estimate that the project will have around \$176.85 in data processing costs, which we have broken down in Appendix F.
+The SDOT data source is structured with road segments defined between plain text addresses, and Pavement Condition Index (PCI) values assigned to those segments. We mapped the addresses to latitude/longitude values, then sampled evenly at 10-meter intervals across the road segments.
+We gathered three street view images from the closest available street view within a 100-meter radius of the specified coordinates. We captured images at headings of 0, 180, and 270 degrees with a pitch of -40 to provide a comprehensive view of the road conditions. Each image was analyzed using GPT-4o to assess road quality based on PCI, and to determine if the captured scene was a road or not (flagged as NOT\_ROAD in cases such as indoor scenes). Averaging the metrics across the three images helped minimize variance and provide a more accurate assessment of each sampling site. The minimum predicted PCI score across all samples in the segment was used as the predicted PCI of the segment.
 
-The experimental setup for our project will primarily consist of Python code that calls the Google Street View Static API, saves and pre-processes the image and then calls the GPT-4o API to rate the road quality. To produce a good dataset we will need to verify the data we are collecting is valid and not a hallucination of the GPT-4o model. To do this, we will be cross-validating our dataset with an existing Seattle road quality dataset that has ratings for different sections of road. Each image that is evaluated will be geolocated to the closest section of road, for which the official dataset provides the Pavement Condition Index (PCI). More information about how we will be calculating and adjusting readings can be found in Appendix G.
+The bounding box of the sampling region is visualized in Appendix A. We estimate that the project incurred around \$110.16 in data processing costs, detailed in Appendix E.
+
+The project ran via Python code that called the Google Street View Static API, saved and pre-processed the images, and then called the OpenAI API to rate the road quality. More information about our calculations and adjustments can be found in Appendix F.
+
+
 
 
 \section{Preliminary Results}
 
-TODO
+The results showed that while GPT-4o was able to identify road quality shown in an image with some accuracy, its ability to approximate human PCI measurements was significantly off. Comparing the GPT-4o output on the validation dataset with 200 segments chosen by length to save computation time showed that, while there is some correlation between the model and the human PCI measurements, it is dominated by an extreme amount of noise.
 
-\section{Discussion}
+\begin{figure}[ht]
+\centering
+    \includegraphics[totalheight=5cm]{prelim_results_plot1}
+    \captionsetup{margin={1cm,1cm}}
+    \caption{\centering Predicted PCI compared to ground truth including 0 PCI examples. }
+    \label{fig:verticalcell}
+\end{figure}
 
-TODO
+The validation database contains an unusual number of streets with a PCI of 0. After personally visiting some of these streets, we can assert that they should not be scored as such. We believe that reasons other than quality might define that value, such as missing readings. Therefore, we will ignore streets with a PCI of 0 in the validation.
+
+\begin{figure}[ht]
+\centering
+    \includegraphics[totalheight=5cm]{prelim_results_plot2}
+    \captionsetup{margin={1cm,1cm}}
+    \caption{\centering Graph of predicted PCI values “PCI\_pred” compared to the ground truth PCI values (PCI). Each point is a road segment. We received an ${r}^2$ fit value of 0.17, with an MAE of 26.19 and RMSE of 33.96, implying a very weak but potentially meaningful correlation.}
+    \label{fig:verticalcell}
+\end{figure}
+
+~\\~\\~\\~\\~\\~\\~\\
+
+\subsection{Model Strengths}
+
+Despite the model’s inability to precisely replicate PCI measurements, there is qualitative evidence to support that the model can identify road quality issues. Below you can see example output from our model, with the model predicting on 3 images each. The final prediction is the averaged prediction for that sample, which is a part of a road segment as defined in the SDOT dataset. The score is the minimum PCI seen so far, and the real PCI is the ground truth PCI from the SDOT dataset.
+
+\begin{figure}[ht]
+\centering
+    {{\includegraphics[width=4.5cm]{1road1} }}%
+    {{\includegraphics[width=4.5cm]{1road2} }}%
+    {{\includegraphics[width=4.5cm]{1road3} }}%
+    \captionsetup{margin={1cm,1cm}}
+    \caption{\centering The model correctly identified the cracks in the road leading to a PCI score of 55, similar to the ground truth PCI score of 20.}%
+    \label{fig:example}%
+\end{figure}
+\begin{figure}[ht]
+\centering
+    {{\includegraphics[width=4.5cm]{2road1} }}%
+    {{\includegraphics[width=4.5cm]{2road2} }}%
+    {{\includegraphics[width=4.5cm]{2road3} }}%
+    \captionsetup{margin={1cm,1cm}}
+    \caption{\centering The average of the three images was a predicted PCI of 80, the same as the ground truth score. }%
+    \label{fig:example}%
+\end{figure}
+
+~\\~\\
+
+Our assumption that Google Street View images would be useful for evaluating real-time street quality proved flawed due to issues with staleness. The Seattle road quality dataset we used is updated frequently, with an average timestamp from 2024, whereas the average Google Street View timestamp from the sample area is from 2022. This significant date difference might contribute to examples where the PCI for the segment seems extremely low given the quality of the road in the Street View image.
+
+We tried to qualitatively ascertain whether the timestamp delta between the Street View image and the ground truth image contributed to a higher PCI squared error by graphing
+the PCI error relative to the timestamp delta. As seen from the graph below, it is unclear whether the timestamp delta actually contributed to the higher PCI squared error. The TimeStampDelta months in this case was taken as the earliest timestamp in the Street View images sampled along the road segment. However, our methodology might have been flawed in this analysis,
+since it is often the case that a segment contains Street View images from a mix of timestamps. See Appendix I for a plot of this data.
 
 
-\section{Limitations}
+\subsection{Model Limitations}
+There were virtually no examples where the model clearly misidentified the quality of a road given what was visible in the image, implying the model is operating correctly but the methodology is flawed. The only example we could find of a potentially incorrect identification was below:
+
+\begin{figure}[ht]
+\centering
+    {{\includegraphics[width=4.5cm]{3road1} }}%
+    {{\includegraphics[width=4.5cm]{3road2} }}%
+    {{\includegraphics[width=4.5cm]{3road3} }}%
+    \captionsetup{margin={1cm,1cm}}
+    \caption{\centering The model predicted NO\_ROAD for the above three images, given that much of the road was obstructed by cars.}%
+    \label{fig:example}%
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+    \includegraphics[totalheight=6cm]{heatmap}
+    \captionsetup{margin={1cm,1cm}}
+    \caption{\centering PCI heatmap derived from sampling at 0.0045 lat/lon resolution over a small area bounded by 47.6205, -122.3493 and 47.616225, -122.3448 in Seattle.}
+    \label{fig:verticalcell}
+\end{figure}
+
+\section{Methodology Limitations}
 
 While our preliminary results are promising, several limitations need to be addressed to ensure the robustness and reliability of our approach. These limitations include challenges related to data quality, model performance, and scalability.
 
-\paragraph{Data Quality:}
-The quality of Google Street View images varies significantly depending on factors such as weather conditions, lighting, and visual obstructions. Poor image quality can lead to inaccurate assessments by the GPT-4o model. For instance, shadows, rain, or snow can obscure road features, making it difficult for the model to accurately identify cracks, potholes, and other road defects. Additionally, obstructions like parked cars or overhanging trees can block parts of the road, further complicating the analysis.
+\textbf{Data Quality:}
+The quality of Google Street View images varies significantly depending on factors such as weather conditions, lighting, and visual obstructions. Poor image quality can lead to inaccurate assessments by the GPT-4 model. Shadows, rain, or snow can obscure road features, making it difficult for the model to accurately identify cracks, potholes, and other road defects. Additionally, obstructions like parked cars or overhanging trees can block parts of the road, further complicating the analysis.
 
-\paragraph{Geolocation Accuracy:}
-Ensuring precise geolocation for each image is crucial for accurate cross-referencing with the official Seattle road quality dataset. Inaccurate geolocation can result in mismatches between the model's assessments and the official data. This issue is particularly relevant when images are taken near intersections or in densely populated areas where GPS signals can be less reliable.
+\textbf{Model Calibration:}
+The GPT-4 model requires careful calibration to accurately assess road quality. Fine-tuning the model's prompts and adjusting its sensitivity to different types of road damage are necessary to improve accuracy. However, this process is complex and time-consuming, and there is a risk of overfitting the model to the specific characteristics of the training data, which can reduce its generalizability to other regions or conditions.
 
-\paragraph{Model Calibration:}
-The GPT-4o model requires careful calibration to accurately assess road quality. Fine-tuning the model's prompts and adjusting its sensitivity to different types of road damage are necessary to improve accuracy. However, this process is complex and time-consuming, and there is a risk of overfitting the model to the specific characteristics of the training data, which can reduce its generalizability to other regions or conditions.
+\textbf{Scalability:}
+While Google Street View provides extensive coverage, scaling this approach to cover larger areas or multiple cities requires significant computational resources and data processing capabilities. The cost of accessing high-resolution images and running the GPT-4 model on a large scale can be prohibitive, limiting the feasibility of widespread implementation without substantial investment. Hiring people to manually collect this data could also be prohibitively expensive, especially over a large area.
 
-\paragraph{False Positives and Negatives:}
-Our preliminary results indicate a small percentage of false positives (images incorrectly flagged as poor quality roads) and false negatives (poor quality roads not identified by the model). These errors are often due to variations in image quality and the inherent limitations of the model's visual processing capabilities. Reducing these errors is critical to ensuring the reliability of the dataset.
-
-\paragraph{Scalability:}
-While Google Street View provides extensive coverage, scaling this approach to cover larger areas or multiple cities requires significant computational resources and data processing capabilities. The cost of accessing high-resolution images and running the GPT-4o model on a large scale can be prohibitive, limiting the feasibility of widespread implementation without substantial investment.
-
-\paragraph{Data Privacy and Ethical Considerations:}
+\textbf{Data Privacy and Ethical Considerations:}
 Using Google Street View images for road quality assessment raises potential privacy and ethical concerns. Ensuring that the data collection and processing methods comply with privacy regulations and ethical guidelines is essential to protect individuals' privacy and maintain public trust.
 
-\paragraph{Model Generalizability:}
-The GPT-4o model's performance may vary when applied to different geographic regions or road conditions. Factors such as differences in road construction materials, maintenance practices, and environmental conditions can affect the model's accuracy. Further testing and validation are required to ensure that the model generalizes well across diverse settings.
+\textbf{Copyright and Legal Considerations}
+It is unclear whether Google Street View imagery can be viewed by GPT-4 or used in the context of a state study on road safety. The respective companies might have language preventing their use in this case to reduce liability.
 
-\paragraph{Temporal Variability:}
+\textbf{Model Generalizability:}
+The GPT-4o model's performance may vary when applied to different geographic regions or road conditions. Factors such as differences in road construction materials, maintenance practices, and environmental conditions can affect the model's accuracy. Further testing and validation in areas beyond Seattle are required to ensure that the model generalizes well across diverse settings.
+
+\textbf{Temporal Variability:}
 Road conditions can change rapidly due to weather events, construction activities, and wear and tear. Capturing these temporal variations requires frequent updates to the dataset, which can be resource-intensive. Ensuring that the dataset remains current and reflects the latest road conditions is a significant challenge.
 
-Addressing these limitations is crucial for the success of our project. Future work will focus on improving image preprocessing techniques, enhancing model calibration, and developing strategies to ensure geolocation accuracy. Additionally, expanding the dataset to cover more areas and conducting further validation will help mitigate these limitations and enhance the robustness and scalability of our approach.
+Addressing these limitations is crucial for the success of our project. Future work should aim to refine our methodology and provide a reliable tool for infrastructure management that can be adopted by cities worldwide.
 
-By acknowledging and addressing these limitations, we aim to refine our methodology and provide a reliable tool for infrastructure management that can be adopted by cities worldwide.
+\section*{Conclusions and Future Work}
 
+Overall, we demonstrated that GPT-4 can be used for pavement analysis despite some inconsistent source and reference data. Based on the identified limitations, we suggest the following future work:
+
+\textbf{Improving Image Preprocessing:}
+Develop advanced preprocessing techniques to enhance image quality and reduce the impact of visual obstructions.
+
+\textbf{Enhancing Model Calibration:}
+Fine-tune the GPT-4 model and prompts to improve accuracy and reduce false positives and negatives.
+
+\textbf{Better Sampling Methods:}
+Since PCI is normally determined in the field by iteratively subtracting values from an initial PCI of 100 while walking along a road segment, taking the minimum PCI across a road segment is only a loose approximation of this technique. To better match the validation set, it would be beneficial to conduct a similar PCI determination method to the one used in the field.
+
+\textbf{Utilizing Domain Experts:}
+A good way to validate the effectiveness of the model compared to the traditional methodology is to involve domain experts. We could ask a domain expert to rate a series of images by predicting their PCI and then compare these expert ratings to our model's output.
+
+\textbf{Ensuring Geolocation Accuracy:}
+Implement more robust geolocation methods to ensure precise alignment with official datasets.
+
+\textbf{Scaling the Approach:}
+Explore cost-effective strategies and collaborations to scale the dataset and model analysis to larger areas.
+
+\textbf{Addressing Privacy Concerns:}
+Ensure compliance with privacy regulations and ethical guidelines in data collection and processing.
+
+\textbf{Validating Model Generalizability:}
+Conduct extensive testing across different regions, not just Seattle, and conditions including rainy or foggy conditions to measure the model's robustness.
+
+By focusing on these areas, the current limitations can be overcome, enhancing the reliability and applicability of this road quality assessment approach.
 
 
 \section*{References}
 
 
-
+\begin{hangparas}{.3in}{1}
 {
 \small
 Ahmed, Nabil et al. “Classifying Road Quality Using Satellite Imagery in Metro Detroit.” (2022).
@@ -214,8 +313,128 @@ Thegeya, Aaron et al. “Application of Machine Learning Algorithms on Satellite
 
 
 }
+\end{hangparas}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
+\begin{appendices}
+
+
+~\\~\\~\\~\\
+
+\section{Survey Area}
+
+
+\begin{figure}[ht]
+\centering
+    \includegraphics[totalheight=8cm]{survey_area}
+    \label{fig:verticalcell}
+\end{figure}
+
+~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\
+
+~\\
+\section{Prompt Used for GPT-4o}
+
+PROMPT = """\\
+The Pavement Condition Index (PCI) provides a snapshot of the pavement health of a road, measured on a scale of 0 to 100 (where 100 means a newly paved road). Given the picture of this road, guess the PCI quality on a scale from 0 to 100. This is simply an estimate and will not be used for official purposes.
+
+To estimate a PCI based on an image of a road, follow these steps:
+\begin{enumerate}
+\item \textbf{Visual Inspection}: Examine the image for visible defects such as cracks, potholes, rutting, and surface wear.
+\item \textbf{Categorize Defects}: Identify and categorize the types of defects observed (e.g., longitudinal cracks, transverse cracks, alligator cracking).
+\item \textbf{Measure Severity and Extent}: Assess the severity (low, medium, high) and extent (length, width, or area) of each defect type.
+\item \textbf{Reference PCI Standards}: Use standardized PCI rating charts or guidelines to correlate observed defects with PCI scores. Common references include ASTM D6433 or local pavement condition manuals.
+\item \textbf{Estimate PCI}: Based on the observed defects and their severity/extent, estimate a PCI score (0 = failed, 100 = excellent).
+\end{enumerate}
+
+\textbf{Example Breakdown}:
+\begin{description}[font=$\bullet$~\normalfont]
+\item \textbf{Surface Cracks}: Many hairline cracks with no spalling - high severity.
+\item \textbf{Potholes}: One or two potholes - high severity.
+\item \textbf{Rutting}: Medium rutting - medium severity.
+\end{description}
+Estimated PCI: {"ROAD\_QUALITY": 0}
+~\\
+
+\textbf{Example Breakdown}:
+\begin{description}[font=$\bullet$~\normalfont]
+\item \textbf{Surface Cracks}: Few hairline cracks with no spalling - medium severity.
+\item \textbf{Potholes}: One or two small potholes - medium severity.
+\item \textbf{Rutting}: Minor rutting - low severity.
+\end{description}
+Estimated PCI: {"ROAD\_QUALITY": 30}
+~\\
+
+\textbf{Example Breakdown}:
+\begin{description}[font=$\bullet$~\normalfont]
+\item \textbf{Surface Cracks}: No visible cracks - low severity.
+\item \textbf{Potholes}: No potholes - low severity.
+\item \textbf{Rutting}: No rutting - low severity.
+\end{description}
+Estimated PCI: {"ROAD\_QUALITY": 80}.
+~\\
+
+NOTES:
+\begin{description}[font=$\bullet$~\normalfont]
+\item A large pothole should drop PCI to 0
+\item A large crack running across the road should drop PCI to 0
+\end{description}
+
+Given the picture of this road, guess the PCI quality on a scale from 0 to 100. Make sure to only look at the road in front of the camera, not any other roads in view. Do not score sidewalks, train tracks, or non-roads. Provide a brief explanation of your reasoning and a confidence score in the form {"ROAD\_QUALITY": N}, where N is a PCI value between 0 and 100. If the image does not contain anything resembling a road, enter {"ROAD\_QUALITY": "NO\_ROAD"}. If the image is indoors, enter {"ROAD\_QUALITY": "INDOOR"}.
+\\"""
+
+\section{Dataset Fields}
+
+The dataset we produce will take the form of a CSV file with the following fields:
+
+\begin{description}[font=$\bullet$~\normalfont]
+\item Timestamp (UTC)
+\item Latitude (Decimal)
+\item Longitude (Decimal)
+\item IRI: International Roughness Index (Float)
+\item PCI: Pavement Condition Index Standards (Int)
+\end{description}
+
+
+\section{Relevant Links}
+Pavement Condition Index: https://en.wikipedia.org/wiki/Pavement\_condition\_index
+International roughness index: https://en.wikipedia.org/wiki/International\_roughness\_index
+
+
+\section{Project Costs}
+Sampling costs for this project primarily comprise two elements: the GPT-4o call, priced at \$0.002125 per sample for a resolution of 600x300 which is the resolution we have chosen for this project, and the Google Maps Static API call, costing \$0.007 per sample. Since we are capturing 3 images per location, the total cost per sample becomes \$0.027375 calculated as (0.002125 + 0.007) * 3. With a total of 4,024 samples, the overall cost for this experiment will be 110.157 This is manageable within the \$300 API credit provided for each user registering to use the Google API.
+
+\section{ PCI Calculations}
+The PCI is also a number from 0-100, where segments lower than 40 are impassable, from 40 to 70 are due to maintenance, and above 80 are good (Appendix E). The official readings will serve to define a strictly increasing function toPCI(x): R->R that translates the model output into the PCI values. In an ideal world, where both the model and the official readings provide consistent assessment of road quality, we would get toPCI(x)=x. But we expect noise and non-linearity between them, so we will have to fit toPCI by minimizing the mean squared error.
+
+\section{ Related Work }
+As specified in the References section, previous projects have attempted similar approaches to evaluating road quality. These approaches have used other methods, as discussed previously – such as satellite imagery (Ceniza 2023, Ahmed 2022, Brewer 2021), drones (Pan 2018), and smartphone sensors (Basavaraju 2020). One project even used Google Street View as well (Lank 2022), but used custom pre-trained neural networks rather than a general vision model as we propose to do. Overall, we determined that street quality data was not easily compiled and made accessible without more expensive manual surveys. Our proposed solution has the potential to change that.
+
+\section{ Constraints }
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Data Availability}: The availability and quality of data on road conditions may vary across different regions. In some areas, comprehensive data may already be collected through various sources like sensors, vehicle telematics, or citizen reporting, while in others, such data might be sparse or nonexistent.
+\item \textbf{Data Integration}: Integrating data from diverse sources, such as traffic patterns, weather data, road maintenance records, and infrastructure age, could pose challenges in terms of data compatibility, reliability, and consistency.
+\item \textbf{Scalability}: The solution needs to be scalable to cover a vast geographical area, potentially spanning the entire United States. Ensuring that the predictive models and infrastructure can handle a large volume of data and computational efficiently is crucial.
+\item \textbf{Accuracy and Precision}: The predictive models must be accurate and precise in assessing road conditions to ensure reliable decision-making. Inaccurate or imprecise predictions could lead to misallocation of resources and ineffective maintenance strategies.
+\item \textbf{Cost}: Implementing and maintaining the infrastructure required for continuous monitoring and prediction of road conditions may involve significant costs. Balancing the cost of data collection, analysis, and maintenance against the benefits derived from improved infrastructure management is essential.
+\item \textbf{Regulatory and Privacy Considerations}: Compliance with regulations related to data privacy, security, and sharing, as well as obtaining necessary permissions for data collection and analysis, must be addressed. Ensuring that sensitive information, such as location data, is handled ethically and responsibly is paramount.
+\item \textbf{Technological Constraints}: The availability of suitable technology for data collection, processing, and analysis may pose limitations. Access to advanced sensor networks, machine learning algorithms, and computing infrastructure is necessary for building and deploying predictive models effectively.
+
+\end{itemize}
+
+\section{ Time Delta }
+
+\begin{figure}[ht]
+\centering
+    \includegraphics[totalheight=6cm]{prelim_results_plot3}
+    \caption{Scatter Plot of PCI SquaredError vs TimeStampDeltaMonths}
+    \label{fig:verticalcell}
+\end{figure}
+
+\end{appendices}
 
 \end{document}
